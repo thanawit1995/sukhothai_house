@@ -1,22 +1,42 @@
-import React, { useState } from 'react';
-import { Bell, RefreshCw, Settings, Check, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Bell, RefreshCw, Check, ChevronRight, Monitor, Smartphone } from 'lucide-react';
 
 export default function Header({ 
   currentUser, 
   onSwitchUser, 
-  onOpenSettings,
+  viewMode,
+  onToggleViewMode,
   notifications,
   onNotificationClick,
   onMarkAllRead
 }) {
   const isJob = currentUser === 'JOB';
   const [showNotiDropdown, setShowNotiDropdown] = useState(false);
+  const notiRef = useRef(null);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
+  // Click / touch outside to close notification dropdown (Req 2)
+  useEffect(() => {
+    if (!showNotiDropdown) return;
+    const handleOutsideClick = (e) => {
+      if (notiRef.current && !notiRef.current.contains(e.target)) {
+        setShowNotiDropdown(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleOutsideClick);
+    document.addEventListener('touchstart', handleOutsideClick);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
+  }, [showNotiDropdown]);
+
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-100 shadow-xs transition-colors">
-      <div className="max-w-md mx-auto px-4 pt-[max(env(safe-area-inset-top),14px)] pb-2.5 flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-amber-100 shadow-xs transition-colors">
+      <div className={`mx-auto px-4 pt-[max(env(safe-area-inset-top),14px)] pb-2.5 flex items-center justify-between transition-all duration-300 ${
+        viewMode === 'desktop' ? 'max-w-7xl px-6' : 'max-w-md'
+      }`}>
         
         {/* Project Branding */}
         <div className="flex items-center gap-2.5">
@@ -32,8 +52,8 @@ export default function Header({
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           
-          {/* Notification Bell with Badge (Req 3) */}
-          <div className="relative">
+          {/* Notification Bell with Badge (Req 2) */}
+          <div className="relative" ref={notiRef}>
             <button
               onClick={() => setShowNotiDropdown(!showNotiDropdown)}
               className="relative w-9 h-9 rounded-2xl bg-stone-100/80 hover:bg-stone-200/80 flex items-center justify-center text-stone-600 active:scale-95 transition-all"
@@ -47,14 +67,14 @@ export default function Header({
               )}
             </button>
 
-            {/* Notification Dropdown Drawer */}
+            {/* Notification Dropdown Drawer with Outside Click Dismiss */}
             {showNotiDropdown && (
               <>
                 <div 
-                  className="fixed inset-0 z-40 bg-black/20 backdrop-blur-xs"
+                  className="fixed inset-0 z-40 bg-black/10 backdrop-blur-2xs cursor-pointer"
                   onClick={() => setShowNotiDropdown(false)}
                 />
-                <div className="absolute right-0 top-11 z-50 w-80 bg-white rounded-3xl shadow-xl border border-stone-200 p-3 space-y-2.5 animate-slide-up">
+                <div className="absolute right-0 top-11 z-50 w-80 bg-white rounded-3xl shadow-2xl border border-stone-200 p-3 space-y-2.5 animate-slide-up">
                   <div className="flex items-center justify-between pb-2 border-b border-stone-100">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-bold text-stone-800">🔔 การแจ้งเตือน</span>
@@ -135,13 +155,23 @@ export default function Header({
             <RefreshCw className="w-3 h-3 opacity-60 ml-0.5" />
           </button>
 
-          {/* Settings / Cloud */}
+          {/* Desktop <-> Mobile View Toggle Button (Req 1) */}
           <button
-            onClick={onOpenSettings}
-            className="w-9 h-9 rounded-2xl bg-stone-100/80 hover:bg-stone-200/80 flex items-center justify-center text-stone-600 active:scale-95 transition-all"
-            aria-label="ตั้งค่าระบบ"
+            onClick={onToggleViewMode}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-200 active:scale-95 transition-all shadow-xs"
+            title={viewMode === 'desktop' ? 'สลับกลับเป็นมุมมองมือถือ' : 'สลับเป็นมุมมองจอคอมพิวเตอร์ (3 คอลัมน์)'}
           >
-            <Settings className="w-4 h-4" />
+            {viewMode === 'desktop' ? (
+              <>
+                <Smartphone className="w-4 h-4 text-amber-700 shrink-0" />
+                <span className="text-[11px] font-bold hidden sm:inline">โหมดมือถือ</span>
+              </>
+            ) : (
+              <>
+                <Monitor className="w-4 h-4 text-amber-700 shrink-0" />
+                <span className="text-[11px] font-bold hidden sm:inline">โหมดจอคอม</span>
+              </>
+            )}
           </button>
 
         </div>
