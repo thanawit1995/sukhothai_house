@@ -51,7 +51,7 @@ export default function Header({
           </div>
           <div className="truncate">
             <h1 className="text-xs sm:text-sm font-black tracking-tight text-stone-900 dark:text-stone-100 whitespace-nowrap">
-              บ้านรัตนากร เฟส 10
+              OUR home
             </h1>
             <p className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 whitespace-nowrap leading-none mt-0.5">
               ต.บ้านกล้วย อ.เมืองสุโขทัย

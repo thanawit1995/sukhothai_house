@@ -1,42 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="warmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="100%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#ea580c"/>
     </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000" flood-opacity="0.18"/>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#7c2d12" flood-opacity="0.25"/>
     </filter>
   </defs>
   
-  <!-- Base Rounded Background -->
-  <rect width="512" height="512" rx="115" fill="url(#amberGrad)"/>
-  <circle cx="256" cy="256" r="215" fill="#ffffff" opacity="0.14"/>
+  <!-- Base Squircle Background with Warm Japandi Gradient -->
+  <rect width="512" height="512" rx="120" fill="url(#warmGrad)"/>
   
-  <!-- Contemporary House Silhouette -->
-  <g filter="url(#shadow)">
-    <!-- SCG Elabana 25 deg Roof -->
-    <polygon points="256,112 82,256 430,256" fill="#ffffff"/>
-    <rect x="348" y="133" width="41" height="82" fill="#ffffff"/>
+  <!-- Subtle Soft Atmosphere Halo -->
+  <circle cx="256" cy="256" r="215" fill="#ffffff" opacity="0.12"/>
+  
+  <!-- Minimalist Contemporary House Silhouette -->
+  <g filter="url(#softShadow)">
+    <!-- Scandinavian Gable Roof (Nordic / Japandi) -->
+    <polygon points="256,96 72,252 440,252" fill="#ffffff"/>
+    
+    <!-- Minimalist Chimney -->
+    <rect x="344" y="118" width="42" height="88" rx="4" fill="#ffffff"/>
     
     <!-- Main House Structure -->
-    <rect x="112" y="245" width="288" height="184" fill="#ffffff"/>
-    <!-- Subtle Overhang Shadow -->
-    <rect x="112" y="245" width="288" height="20" fill="#b45309" opacity="0.15"/>
+    <rect x="104" y="242" width="304" height="196" rx="8" fill="#ffffff"/>
     
-    <!-- Arched Porch / Entrance Door -->
-    <path d="M 210,429 V 350 A 46,46 0 0 1 302,350 V 429 Z" fill="#f59e0b"/>
-    <!-- Warm Porch Light Glow -->
-    <ellipse cx="256" cy="355" rx="32" ry="24" fill="#fef3c7" opacity="0.95"/>
+    <!-- Subtle Modern Shadow Under Roofline -->
+    <rect x="104" y="242" width="304" height="16" fill="#b45309" opacity="0.12"/>
     
-    <!-- Left & Right Arched Windows -->
-    <rect x="138" y="281" width="51" height="71" rx="8" fill="#fef3c7" opacity="0.9"/>
-    <rect x="323" y="281" width="51" height="71" rx="8" fill="#fef3c7" opacity="0.9"/>
-  </g>
-  
-  <!-- Phase 10 Rose Badge -->
-  <g filter="url(#shadow)">
-    <circle cx="395" cy="117" r="71" fill="#e11d48" stroke="#ffffff" stroke-width="12"/>
-    <text x="395" y="139" font-family="Arial, sans-serif" font-weight="900" font-size="64" fill="#ffffff" text-anchor="middle">10</text>
+    <!-- Signature Arched Entrance / Archway Door -->
+    <path d="M 206,438 V 344 A 50,50 0 0 1 306,344 V 438 Z" fill="#f59e0b"/>
+    <!-- Warm Hearth Light Glow Inside Arch -->
+    <ellipse cx="256" cy="350" rx="34" ry="26" fill="#fef3c7" opacity="0.95"/>
+    
+    <!-- Symmetrical Minimal Warm Windows -->
+    <rect x="134" y="280" width="48" height="72" rx="10" fill="#fef3c7" opacity="0.92"/>
+    <rect x="330" y="280" width="48" height="72" rx="10" fill="#fef3c7" opacity="0.92"/>
   </g>
 </svg>

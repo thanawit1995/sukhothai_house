@@ -1,7 +1,7 @@
 {
-  "name": "บ้านรัตนากร เฟส 10 - JOB & Pealpeal",
-  "short_name": "บ้านรัตนากร 10",
-  "description": "แอปพลิเคชันวางแผนสร้างบ้านและบันทึกร่วมกัน โครงการบ้านรัตนากร เฟส 10",
+  "name": "OUR home",
+  "short_name": "OUR home",
+  "description": "แอปพลิเคชันวางแผนสร้างบ้านและบันทึกร่วมกัน - OUR home",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

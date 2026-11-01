@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Tag, Trash2, Edit3, Calendar, Image as ImageIcon, X, Paperclip, Search } from 'lucide-react';
+import { Plus, Tag, Trash2, Edit3, Calendar, Image as ImageIcon, X, Paperclip, Search, SlidersHorizontal, Check } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
 
 export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote, currentUser, targetNoteId }) {
   const isJob = currentUser === 'JOB';
 
-  // Filters
+  // Filters (Req 1: Only "JOB" & "Pealpeal" chips; all other filters consolidated into 1 button)
+  const [selectedUser, setSelectedUser] = useState(null); // null (All) | 'JOB' | 'Pealpeal'
   const [selectedTag, setSelectedTag] = useState('ทั้งหมด');
   const [selectedDate, setSelectedDate] = useState(''); // 'YYYY-MM-DD'
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Add Note Form
   const [isAddingNote, setIsAddingNote] = useState(false);
@@ -111,11 +113,15 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
     setIsAddingNote(false);
   };
 
-  // Filter notes
+  const activeFilterCount = (selectedTag !== 'ทั้งหมด' ? 1 : 0) + (selectedDate ? 1 : 0) + (searchQuery.trim() ? 1 : 0);
+
+  // Filter notes (Req 1: User chips + consolidated other filters)
   const filteredNotes = notes.filter(n => {
+    // User filter (Req 1: Only "JOB" & "Pealpeal" chips)
+    if (selectedUser && n.createdBy !== selectedUser) return false;
     // Tag filter
     if (selectedTag !== 'ทั้งหมด' && n.tag !== selectedTag) return false;
-    // Date filter (Req 2)
+    // Date filter
     if (selectedDate && n.date !== selectedDate && n.createdAt?.split('T')[0] !== selectedDate) return false;
     // Search query
     if (searchQuery.trim()) {
@@ -128,80 +134,126 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
   return (
     <div className="space-y-3.5 pb-24 max-w-md mx-auto px-4 pt-3">
       
-      {/* Top Search & Filter Bar */}
+      {/* Top Filter Chips & Action Bar (Req 1: Only "JOB" & "Pealpeal", other filters in 1 button) */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          {/* Search Input */}
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="ค้นหาโน้ต..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-8 pr-3 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-xs"
-            />
+        <div className="flex items-center justify-between gap-1.5 pt-1">
+          
+          {/* Left: User Chips: Strictly "JOB" & "Pealpeal" */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* JOB Chip */}
+            <button
+              onClick={() => setSelectedUser(prev => prev === 'JOB' ? null : 'JOB')}
+              className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs border ${
+                selectedUser === 'JOB'
+                  ? 'bg-sky-600 border-sky-600 text-white shadow-sky-200 dark:shadow-none'
+                  : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
+              }`}
+              title="กรองดูเฉพาะโน้ตของ JOB (แตะซ้ำเพื่อดูทั้งหมด)"
+            >
+              <span>👔</span>
+              <span>JOB</span>
+              {selectedUser === 'JOB' && <Check className="w-3 h-3 stroke-[3]" />}
+            </button>
+
+            {/* Pealpeal Chip */}
+            <button
+              onClick={() => setSelectedUser(prev => prev === 'Pealpeal' ? null : 'Pealpeal')}
+              className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs border ${
+                selectedUser === 'Pealpeal'
+                  ? 'bg-rose-500 border-rose-500 text-white shadow-rose-200 dark:shadow-none'
+                  : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
+              }`}
+              title="กรองดูเฉพาะโน้ตของ Pealpeal (แตะซ้ำเพื่อดูทั้งหมด)"
+            >
+              <span>🌸</span>
+              <span>Pealpeal</span>
+              {selectedUser === 'Pealpeal' && <Check className="w-3 h-3 stroke-[3]" />}
+            </button>
           </div>
 
-          {/* Date Filter Input */}
-          <div className="relative flex items-center">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs px-2.5 py-1.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-200 font-medium shadow-xs focus:outline-none"
-            />
-            {selectedDate && (
-              <button
-                onClick={() => setSelectedDate('')}
-                className="ml-1 p-1 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700"
-                title="ล้างตัวกรองวันที่"
-              >
-                <X className="w-3 h-3" />
-              </button>
+          {/* Right: Consolidated Filter Button ("ปุ่มเดียว") + New Note Button */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Consolidated Filter Button ("ปุ่มเดียว") */}
+            <button
+              onClick={() => setIsFilterModalOpen(true)}
+              className={`h-8 px-2.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 shadow-xs border ${
+                activeFilterCount > 0
+                  ? 'bg-amber-500 border-amber-500 text-stone-950 shadow-amber-200 dark:shadow-none'
+                  : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
+              }`}
+              title="ค้นหา, กรองตามหมวดหมู่ หรือเลือกวันที่"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>ตัวกรอง</span>
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-stone-900 text-white text-[10px] font-black flex items-center justify-center -mr-0.5">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            {/* Add Note Button */}
+            <button
+              onClick={() => setIsAddingNote(!isAddingNote)}
+              className={`h-8 px-3 rounded-full text-xs font-bold text-white shadow-xs flex items-center gap-1 active:scale-95 transition-all ${
+                isJob ? 'bg-sky-600 hover:bg-sky-700' : 'bg-rose-500 hover:bg-rose-600'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden xs:inline">เขียนโน้ต</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Active Filter Indicators (Compact dismissible bar) */}
+        {(selectedUser || activeFilterCount > 0) && (
+          <div className="flex items-center gap-1.5 flex-wrap text-[11px] pt-0.5">
+            {selectedUser && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-800 dark:text-stone-200 font-medium">
+                ผู้เขียน: {selectedUser === 'JOB' ? '👔 JOB' : '🌸 Pealpeal'}
+                <button onClick={() => setSelectedUser(null)} className="hover:text-rose-500 ml-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
             )}
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-900">
+                🔍 "{searchQuery}"
+                <button onClick={() => setSearchQuery('')} className="hover:text-rose-500 ml-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {selectedTag !== 'ทั้งหมด' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-900">
+                🏷️ {selectedTag}
+                <button onClick={() => setSelectedTag('ทั้งหมด')} className="hover:text-rose-500 ml-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {selectedDate && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-900">
+                📅 {new Date(selectedDate).toLocaleDateString('th-TH', { dateStyle: 'medium' })}
+                <button onClick={() => setSelectedDate('')} className="hover:text-rose-500 ml-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            <button 
+              onClick={() => {
+                setSelectedUser(null);
+                setSelectedTag('ทั้งหมด');
+                setSelectedDate('');
+                setSearchQuery('');
+              }}
+              className="text-[10px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 underline font-medium ml-1"
+            >
+              ล้างทั้งหมด
+            </button>
           </div>
-        </div>
-
-        {/* Tag Filters & Add Button */}
-        <div className="flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-            {['ทั้งหมด', 'ด่วน', 'ไอเดีย', 'ราคา', 'สเปก'].map(t => (
-              <button
-                key={t}
-                onClick={() => setSelectedTag(t)}
-                className={`text-[11px] px-3 py-1 rounded-full whitespace-nowrap transition-all font-medium ${
-                  selectedTag === t
-                    ? isJob ? 'bg-sky-600 text-white font-bold shadow-xs' : 'bg-rose-500 text-white font-bold shadow-xs'
-                    : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-800 shadow-xs'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => setIsAddingNote(!isAddingNote)}
-            className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-sm active:scale-95 transition-all ${
-              isJob ? 'bg-sky-600 hover:bg-sky-700' : 'bg-rose-500 hover:bg-rose-600'
-            }`}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>เขียนโน้ต</span>
-          </button>
-        </div>
+        )}
       </div>
-
-      {/* Date Filter Active Hint */}
-      {selectedDate && (
-        <div className="flex items-center justify-between text-[11px] bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 px-3 py-1.5 rounded-2xl font-medium">
-          <span>📅 กรองดูวันที่: {new Date(selectedDate).toLocaleDateString('th-TH', { dateStyle: 'long' })}</span>
-          <button onClick={() => setSelectedDate('')} className="text-amber-900 dark:text-amber-300 underline font-bold">
-            ดูทั้งหมด
-          </button>
-        </div>
-      )}
 
       {/* Create New Note Drawer Form */}
       {isAddingNote && (
@@ -479,6 +531,134 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               </button>
             </div>
           </form>
+        </div>,
+        document.body
+      )}
+
+      {/* Consolidated Filter Modal / Drawer ("ปุ่มเดียว" - Req 1) */}
+      {isFilterModalOpen && createPortal(
+        <div 
+          className="fixed inset-0 z-[99998] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+          onClick={() => setIsFilterModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-4 animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                  <SlidersHorizontal className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-stone-900 dark:text-white">
+                  ตัวกรองโน้ต
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsFilterModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-400 hover:text-stone-700 dark:hover:text-white flex items-center justify-center"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* 1. Search Query */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <Search className="w-3.5 h-3.5 text-amber-500" />
+                <span>ค้นหาข้อความ</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="พิมพ์คำค้นหา..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs pl-3 pr-8 py-2.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Tag Filters */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-amber-500" />
+                <span>หมวดหมู่ / แท็ก</span>
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {['ทั้งหมด', 'ด่วน', 'ไอเดีย', 'ราคา', 'สเปก'].map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setSelectedTag(t)}
+                    className={`text-xs px-3 py-1.5 rounded-xl transition-all font-medium border ${
+                      selectedTag === t
+                        ? 'bg-amber-500 border-amber-500 text-stone-950 font-bold shadow-xs'
+                        : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300'
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Date Filter */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                <span>กรองตามวันที่</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="flex-1 text-xs px-3 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 font-medium"
+                />
+                {selectedDate && (
+                  <button
+                    onClick={() => setSelectedDate('')}
+                    className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-700"
+                    title="ล้างวันที่"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex gap-2 pt-2 border-t border-stone-100 dark:border-stone-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTag('ทั้งหมด');
+                  setSelectedDate('');
+                  setSearchQuery('');
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-bold active:scale-95 transition-all"
+              >
+                ล้างตัวกรอง
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsFilterModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold active:scale-95 transition-all shadow-md"
+              >
+                ดูโน้ต ({filteredNotes.length} รายการ)
+              </button>
+            </div>
+          </div>
         </div>,
         document.body
       )}

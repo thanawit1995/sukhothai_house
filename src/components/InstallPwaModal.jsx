@@ -69,12 +69,12 @@ export default function InstallPwaModal() {
           <div className="flex items-center gap-3">
             <img 
               src="./icons/icon-192.png" 
-              alt="บ้านรัตนากร 10" 
+              alt="OUR home" 
               className="w-12 h-12 rounded-2xl shadow-md border border-amber-300"
             />
             <div>
               <h3 className="text-sm font-black text-stone-900 dark:text-stone-100">
-                ติดตั้ง บ้านรัตนากร 10
+                ติดตั้ง OUR home
               </h3>
               <p className="text-[11px] text-stone-500 dark:text-stone-400">
                 เพื่อเปิดใช้งานไวขึ้น เหมือนแอปจริงบนมือถือ
