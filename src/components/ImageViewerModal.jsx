@@ -1,8 +1,9 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, Download, Share2, ZoomIn } from 'lucide-react';
 
 export default function ImageViewerModal({ isOpen, src, alt = 'รูปภาพ', onClose }) {
-  if (!isOpen || !src) return null;
+  if (!isOpen || !src || typeof document === 'undefined') return null;
 
   // Handle direct download / save to phone
   const handleDownload = () => {
@@ -19,17 +20,17 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
     }
   };
 
-  return (
+  return createPortal(
     <div 
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-3 select-none animate-fade-in"
+      className="fixed inset-0 z-[99999] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-5 select-none animate-fade-in"
       onClick={onClose}
     >
       {/* Top Controls Bar */}
       <div 
-        className="flex items-center justify-between z-10 pt-[max(env(safe-area-inset-top),10px)]"
+        className="flex items-center justify-between z-10 pt-[max(env(safe-area-inset-top),12px)] px-2"
         onClick={(e) => e.stopPropagation()}
       >
-        <span className="text-xs text-white/80 font-medium truncate max-w-[200px] px-2">
+        <span className="text-xs sm:text-sm text-white/90 font-medium truncate max-w-[240px] px-2 bg-black/40 py-1 rounded-lg">
           {alt}
         </span>
 
@@ -55,24 +56,25 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
         </div>
       </div>
 
-      {/* Main Image Container (Strictly object-contain to NEVER crop any content!) */}
+      {/* Main Image Container (Truly fullscreen, never confined to column!) */}
       <div 
-        className="flex-1 flex items-center justify-center p-2 overflow-hidden"
+        className="flex-1 flex items-center justify-center p-2 overflow-hidden w-full h-full"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={src}
           alt={alt}
-          className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl transition-transform"
+          className="max-w-[95vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl transition-transform"
         />
       </div>
 
       {/* Bottom Hint */}
       <div 
-        className="pb-[max(env(safe-area-inset-bottom),10px)] text-center text-[10px] text-white/50 pointer-events-none"
+        className="pb-[max(env(safe-area-inset-bottom),12px)] text-center text-[10px] sm:text-xs text-white/60 pointer-events-none"
       >
         แตะที่ว่างเพื่อปิด หรือกดปุ่ม "บันทึกลงเครื่อง" ด้านบน
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Download, X, Share, PlusSquare, Smartphone } from 'lucide-react';
 
 export default function InstallPwaModal() {
@@ -57,10 +58,10 @@ export default function InstallPwaModal() {
     setIsOpen(false);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[99997] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
       <div className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-amber-200 dark:border-stone-800 space-y-4 animate-slide-up">
         
         {/* Header with App Icon */}
@@ -137,6 +138,7 @@ export default function InstallPwaModal() {
         )}
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Tag, Trash2, Edit3, Calendar, Image as ImageIcon, X, Paperclip, Search } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
@@ -132,13 +133,13 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
         <div className="flex items-center gap-2">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="ค้นหาโน้ต..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs pl-8 pr-3 py-2 rounded-2xl bg-white border border-stone-200 text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-xs"
+              className="w-full text-xs pl-8 pr-3 py-2 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-xs"
             />
           </div>
 
@@ -148,12 +149,12 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs px-2.5 py-1.5 rounded-2xl bg-white border border-stone-200 text-stone-700 font-medium shadow-xs focus:outline-none"
+              className="text-xs px-2.5 py-1.5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-200 font-medium shadow-xs focus:outline-none"
             />
             {selectedDate && (
               <button
                 onClick={() => setSelectedDate('')}
-                className="ml-1 p-1 rounded-full bg-stone-200 text-stone-600 hover:bg-stone-300"
+                className="ml-1 p-1 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-700"
                 title="ล้างตัวกรองวันที่"
               >
                 <X className="w-3 h-3" />
@@ -172,7 +173,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 className={`text-[11px] px-3 py-1 rounded-full whitespace-nowrap transition-all font-medium ${
                   selectedTag === t
                     ? isJob ? 'bg-sky-600 text-white font-bold shadow-xs' : 'bg-rose-500 text-white font-bold shadow-xs'
-                    : 'bg-white text-stone-600 border border-stone-200 shadow-xs'
+                    : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-800 shadow-xs'
                 }`}
               >
                 {t}
@@ -194,9 +195,9 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
 
       {/* Date Filter Active Hint */}
       {selectedDate && (
-        <div className="flex items-center justify-between text-[11px] bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-2xl font-medium">
+        <div className="flex items-center justify-between text-[11px] bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-300 px-3 py-1.5 rounded-2xl font-medium">
           <span>📅 กรองดูวันที่: {new Date(selectedDate).toLocaleDateString('th-TH', { dateStyle: 'long' })}</span>
-          <button onClick={() => setSelectedDate('')} className="text-amber-900 underline font-bold">
+          <button onClick={() => setSelectedDate('')} className="text-amber-900 dark:text-amber-300 underline font-bold">
             ดูทั้งหมด
           </button>
         </div>
@@ -204,15 +205,15 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
 
       {/* Create New Note Drawer Form */}
       {isAddingNote && (
-        <form onSubmit={handleCreateNote} className="bg-white p-4 rounded-3xl border border-stone-200 shadow-lg space-y-3 animate-slide-up">
+        <form onSubmit={handleCreateNote} className="bg-white dark:bg-stone-900 p-4 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-lg space-y-3 animate-slide-up">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
               <span>✍️</span> เขียนโน้ตในชื่อ {currentUser}
             </span>
             <select 
               value={tag}
               onChange={(e) => setTag(e.target.value)}
-              className="text-[11px] bg-amber-50 text-amber-800 px-2.5 py-1 rounded-xl border border-amber-200 font-medium"
+              className="text-[11px] bg-amber-50 dark:bg-stone-800 text-amber-800 dark:text-amber-300 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-stone-700 font-medium"
             >
               <option value="ไอเดีย">🟢 ไอเดีย</option>
               <option value="ด่วน">🔴 ด่วนต้องสรุป</option>
@@ -226,7 +227,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             placeholder="หัวข้อเรื่อง (เช่น ลายกระเบื้องห้องน้ำ, สีกำแพง)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full text-xs px-3.5 py-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
 
           <textarea
@@ -234,12 +235,12 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             rows={3}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full text-xs p-3 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full text-xs p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
 
           {/* Device Photo Upload */}
           <div className="space-y-2">
-            <label className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-stone-50 border border-dashed border-stone-300 text-stone-600 text-xs cursor-pointer hover:bg-stone-100 transition-colors">
+            <label className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-dashed border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-750 transition-colors">
               <ImageIcon className="w-4 h-4 text-amber-600" />
               <span>📷 อัพโหลดรูปถ่ายจากเครื่อง</span>
               <input
@@ -251,7 +252,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             </label>
 
             {imagePreview && (
-              <div className="relative w-full max-h-40 rounded-2xl overflow-hidden border border-stone-200 bg-stone-900">
+              <div className="relative w-full max-h-40 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
                 <button
                   type="button"
@@ -268,7 +269,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             <button
               type="button"
               onClick={() => setIsAddingNote(false)}
-              className="flex-1 py-2 rounded-2xl text-xs bg-stone-100 text-stone-600"
+              className="flex-1 py-2 rounded-2xl text-xs bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold"
             >
               ยกเลิก
             </button>
@@ -287,7 +288,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
       {/* Notes Feed */}
       <div className="space-y-3">
         {filteredNotes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-stone-200 text-stone-400 text-xs space-y-1">
+          <div className="text-center py-12 bg-white dark:bg-stone-900/60 rounded-3xl border border-dashed border-stone-200 dark:border-stone-800 text-stone-400 dark:text-stone-500 text-xs space-y-1">
             <p>ไม่พบรายการโน้ตตามเงื่อนไขที่เลือก</p>
             <p className="text-[10px]">กดปุ่ม "เขียนโน้ต" ด้านบนเพื่อเพิ่มรายการใหม่</p>
           </div>
@@ -302,33 +303,33 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 id={`note-${note.id}`}
                 className={`p-4 rounded-3xl border transition-all space-y-2.5 ${
                   isHighlight 
-                    ? 'ring-2 ring-amber-400 bg-amber-50/60 border-amber-300' 
-                    : 'bg-white border-stone-200/90 shadow-xs'
+                    ? 'ring-2 ring-amber-400 bg-amber-50/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800' 
+                    : 'bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800/90 shadow-xs'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-1.5">
                     <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                       noteIsJob 
-                        ? 'bg-sky-100 text-sky-800 border border-sky-200' 
-                        : 'bg-rose-100 text-rose-800 border border-rose-200'
+                        ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800' 
+                        : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
                     }`}>
                       {noteIsJob ? '👔 JOB' : '🌸 Pealpeal'}
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-medium">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium">
                       {note.tag || 'ทั่วไป'}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-stone-400 font-mono">
+                    <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">
                       {note.date || note.createdAt?.split('T')[0]}
                     </span>
                     
                     {/* Edit Button */}
                     <button 
                       onClick={() => handleOpenEdit(note)}
-                      className="p-1 text-stone-300 hover:text-amber-600 active:scale-90"
+                      className="p-1 text-stone-400 dark:text-stone-500 hover:text-amber-600 dark:hover:text-amber-400 active:scale-90"
                       title="แก้ไขโน้ตนี้"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -337,7 +338,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                     {/* Delete Trigger Button (Opens ConfirmModal) */}
                     <button 
                       onClick={() => setNoteToDelete(note)}
-                      className="p-1 text-stone-300 hover:text-rose-500 active:scale-90"
+                      className="p-1 text-stone-400 dark:text-stone-500 hover:text-rose-500 active:scale-90"
                       title="ลบโน้ตนี้"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -346,10 +347,10 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-bold text-stone-800 mb-1">
+                  <h4 className="text-sm font-bold text-stone-900 dark:text-stone-100 mb-1">
                     {note.title}
                   </h4>
-                  <p className="text-xs text-stone-600 whitespace-pre-line leading-relaxed">
+                  <p className="text-xs text-stone-600 dark:text-stone-300 whitespace-pre-line leading-relaxed">
                     {note.content}
                   </p>
                 </div>
@@ -361,7 +362,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                       <div 
                         key={i} 
                         onClick={() => setViewingImage({ src: att.url, alt: att.label || note.title })}
-                        className="rounded-2xl overflow-hidden border border-stone-200 bg-stone-100 max-h-36 cursor-pointer shadow-xs active:scale-98 transition-transform group relative"
+                        className="rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-800 max-h-36 cursor-pointer shadow-xs active:scale-98 transition-transform group relative"
                         title="แตะเพื่อดูรูปขนาดเต็ม / บันทึกลงเครื่อง"
                       >
                         <img src={att.url} alt={att.label} className="w-full h-full object-cover" />
@@ -379,18 +380,18 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
       </div>
 
       {/* Edit Note Modal */}
-      {editingNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <form onSubmit={handleSaveEdit} className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <span className="text-sm font-bold text-stone-800">แก้ไขบันทึก / ไอเดีย</span>
-              <button type="button" onClick={() => setEditingNote(null)} className="p-1 text-stone-400">
+      {editingNote && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <form onSubmit={handleSaveEdit} className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+              <span className="text-sm font-bold text-stone-900 dark:text-stone-100">แก้ไขบันทึก / ไอเดีย</span>
+              <button type="button" onClick={() => setEditingNote(null)} className="p-1 text-stone-400 dark:text-stone-500">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">หมวดหมู่</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">หมวดหมู่</label>
               <div className="flex gap-1.5 flex-wrap">
                 {['ไอเดีย', 'สเปก', 'งานช่าง', 'คำถาม', 'ทั่วไป'].map(t => (
                   <button
@@ -398,7 +399,9 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                     type="button"
                     onClick={() => setEditTag(t)}
                     className={`px-3 py-1 rounded-xl text-xs font-medium transition-all ${
-                      editTag === t ? 'bg-amber-400 text-stone-900 font-bold shadow-xs' : 'bg-stone-100 text-stone-600'
+                      editTag === t 
+                        ? 'bg-amber-400 text-stone-900 font-bold shadow-xs' 
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                     }`}
                   >
                     {t}
@@ -408,33 +411,33 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">หัวข้อ</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">หัวข้อ</label>
               <input
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 placeholder="ระบุหัวข้อโน้ต"
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">รายละเอียด</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">รายละเอียด</label>
               <textarea
                 rows={3}
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 placeholder="พิมพ์รายละเอียดที่ต้องการแก้ไข..."
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none"
                 required
               />
             </div>
 
             {/* Photo Attachment */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-stone-500 block">รูปภาพประกอบ</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block">รูปภาพประกอบ</label>
               {editImagePreview ? (
-                <div className="relative w-full max-h-36 rounded-2xl overflow-hidden border border-stone-200 bg-stone-900">
+                <div className="relative w-full max-h-36 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900">
                   <img src={editImagePreview} alt="Preview" className="w-full h-full object-contain" />
                   <button
                     type="button"
@@ -445,7 +448,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-dashed border-stone-300 text-stone-500 text-xs cursor-pointer hover:bg-stone-50">
+                <label className="flex items-center justify-center gap-2 p-2.5 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 text-stone-500 dark:text-stone-400 text-xs cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800">
                   <ImageIcon className="w-4 h-4 text-amber-500" />
                   <span>เลือกรูปจากเครื่อง</span>
                   <input
@@ -462,7 +465,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               <button
                 type="button"
                 onClick={() => setEditingNote(null)}
-                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 text-stone-600 font-bold"
+                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold"
               >
                 ยกเลิก
               </button>
@@ -476,7 +479,8 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal (Req 1) */}

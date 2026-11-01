@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Home, Trees, LayoutGrid, Car, ChefHat, BedDouble, Bed, Armchair, Utensils, Bath, Camera, Plus, Edit3, Trash2, ZoomIn, RefreshCw, X, Check } from 'lucide-react';
 import BottomSheet from '../components/BottomSheet';
 import ConfirmModal from '../components/ConfirmModal';
@@ -360,11 +361,11 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
     <div className="space-y-4 pb-24 max-w-md mx-auto px-4 pt-3">
       
       {/* Sub-Tabs Control Pills (Req 7) */}
-      <div className="flex p-1 bg-amber-100/70 rounded-2xl text-xs font-bold text-stone-600 shadow-xs">
+      <div className="flex p-1 bg-amber-100/70 dark:bg-stone-900 rounded-2xl text-xs font-bold text-stone-600 dark:text-stone-300 shadow-xs border border-transparent dark:border-stone-800">
         <button
           onClick={() => setSubTab('house3d')}
           className={`flex-1 py-2 rounded-xl transition-all ${
-            subTab === 'house3d' ? 'bg-white text-stone-900 shadow-xs' : 'hover:text-stone-900'
+            subTab === 'house3d' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-xs' : 'hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           🏠 ตัวบ้าน 3D
@@ -372,7 +373,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
         <button
           onClick={() => setSubTab('outdoor')}
           className={`flex-1 py-2 rounded-xl transition-all ${
-            subTab === 'outdoor' ? 'bg-white text-stone-900 shadow-xs' : 'hover:text-stone-900'
+            subTab === 'outdoor' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-xs' : 'hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           🌳 สวน & รั้ว 10m
@@ -380,7 +381,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
         <button
           onClick={() => setSubTab('indoor')}
           className={`flex-1 py-2 rounded-xl transition-all ${
-            subTab === 'indoor' ? 'bg-white text-stone-900 shadow-xs' : 'hover:text-stone-900'
+            subTab === 'indoor' ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-xs' : 'hover:text-stone-900 dark:hover:text-stone-100'
           }`}
         >
           🛋️ แปลนในบ้าน
@@ -395,8 +396,8 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               {/* Change Image Button */}
-              <label className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white border border-stone-200 text-stone-700 text-xs font-bold shadow-xs cursor-pointer active:scale-95 hover:bg-stone-50">
-                <Camera className="w-3.5 h-3.5 text-amber-600" />
+              <label className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-200 text-xs font-bold shadow-xs cursor-pointer active:scale-95 hover:bg-stone-50 dark:hover:bg-stone-800">
+                <Camera className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>เปลี่ยนรูปบ้าน</span>
                 <input type="file" accept="image/*" onChange={handleHouseImageUpload} className="hidden" />
               </label>
@@ -404,7 +405,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
               {houseImage !== './images/project_contemporary_house.png' && (
                 <button
                   onClick={handleResetHouseImage}
-                  className="p-1.5 rounded-full bg-stone-100 text-stone-500 hover:text-stone-800"
+                  className="p-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
                   title="คืนค่ารูปโครงการเดิม"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
@@ -490,14 +491,14 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
           </div>
 
           {/* Project Details Description Card */}
-          <div className="bg-white p-3.5 rounded-3xl border border-stone-200 text-xs space-y-1 shadow-xs">
-            <div className="flex items-center justify-between font-bold text-stone-800">
+          <div className="bg-white dark:bg-stone-900 p-3.5 rounded-3xl border border-stone-200 dark:border-stone-800 text-xs space-y-1 shadow-xs">
+            <div className="flex items-center justify-between font-bold text-stone-800 dark:text-stone-100">
               <span>🏡 แบบบ้าน Contemporary Style House (โครงการเฟส 8)</span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
                 ตามแบบโครงการ
               </span>
             </div>
-            <p className="text-stone-500 text-[11px] leading-relaxed">
+            <p className="text-stone-500 dark:text-stone-400 text-[11px] leading-relaxed">
               แบบบ้านเดี่ยว 1 ชั้นร่วมสมัย โทนสว่าง ซุ้มโค้งโมเดิร์น พร้อมโรงจอดรถในร่ม 2 คัน (หน้ากว้างตัวบ้าน 14.00 ม. ลึก 10.20 ม.)
             </p>
           </div>
@@ -508,15 +509,15 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
               <button
                 key={hp.id}
                 onClick={() => setActiveItem(hp)}
-                className="text-left p-3 rounded-2xl bg-white border border-stone-200 hover:border-amber-400 active:scale-98 transition-all space-y-1 shadow-xs"
+                className="text-left p-3 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:border-amber-400 dark:hover:border-amber-500 active:scale-98 transition-all space-y-1 shadow-xs"
               >
                 <div className="flex items-center justify-between">
-                  <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-[10px]">
+                  <span className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold flex items-center justify-center text-[10px]">
                     {hp.number}
                   </span>
-                  <span className="text-[9px] text-stone-400">{hp.badge}</span>
+                  <span className="text-[9px] text-stone-400 dark:text-stone-500">{hp.badge}</span>
                 </div>
-                <p className="font-bold text-stone-800 truncate text-[11px]">
+                <p className="font-bold text-stone-800 dark:text-stone-100 truncate text-[11px]">
                   {hp.title.split('(')[0]}
                 </p>
               </button>
@@ -543,13 +544,13 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
           </div>
 
           {/* Gate Simulator */}
-          <div className="bg-white p-4 rounded-3xl border border-stone-200 shadow-xs space-y-2.5">
-            <h4 className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+          <div className="bg-white dark:bg-stone-900 p-4 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-xs space-y-2.5">
+            <h4 className="text-xs font-bold text-stone-800 dark:text-stone-100 flex items-center gap-1.5">
               <span>🚪</span> ทดสอบระบบประตูรั้ว 2 บาน (Dual Gate)
             </h4>
 
-            <div className="bg-stone-50 p-3 rounded-2xl border border-stone-200 space-y-2 select-none">
-              <div className="flex justify-between text-[10px] text-stone-400 font-mono">
+            <div className="bg-stone-50 dark:bg-stone-950 p-3 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2 select-none">
+              <div className="flex justify-between text-[10px] text-stone-400 dark:text-stone-500 font-mono">
                 <span>ฝั่งตะวันตก (สวน 10m)</span>
                 <span>โรงรถ (6m)</span>
                 <span>ฝั่งตะวันออก (10m)</span>
@@ -560,8 +561,8 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
                   onClick={() => setIsSwingOpen(!isSwingOpen)}
                   className={`col-span-4 h-full rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
                     isSwingOpen 
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-800' 
-                      : 'border-stone-300 bg-white text-stone-600'
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300' 
+                      : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300'
                   }`}
                 >
                   <span className="text-[10px] font-bold">ประตูสวิง 3.2m</span>
@@ -572,17 +573,17 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
                   onClick={() => setIsSlidingOpen(!isSlidingOpen)}
                   className={`col-span-5 h-full rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all ${
                     isSlidingOpen 
-                      ? 'border-sky-500 bg-sky-50 text-sky-800 translate-x-2' 
-                      : 'border-stone-300 bg-white text-stone-600'
+                      ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 translate-x-2' 
+                      : 'border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300'
                   }`}
                 >
                   <span className="text-[10px] font-bold">ประตูเลื่อน 5.2m</span>
                   <span className="text-[9px]">{isSlidingOpen ? '🟢 สไลด์ขวา' : '🔴 ปิด'}</span>
                 </div>
 
-                <div className="col-span-3 h-full rounded-2xl bg-stone-200 border border-stone-300 flex flex-col items-center justify-center text-center p-1">
-                  <span className="text-[9px] text-stone-600 font-bold">รั้วทึบ</span>
-                  <span className="text-[8px] text-stone-400">รางเก็บประตู</span>
+                <div className="col-span-3 h-full rounded-2xl bg-stone-200 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 flex flex-col items-center justify-center text-center p-1">
+                  <span className="text-[9px] text-stone-600 dark:text-stone-300 font-bold">รั้วทึบ</span>
+                  <span className="text-[8px] text-stone-400 dark:text-stone-500">รางเก็บประตู</span>
                 </div>
               </div>
 
@@ -609,15 +610,15 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
               <div
                 key={zone.id}
                 onClick={() => setActiveItem(zone)}
-                className="bg-white p-3.5 rounded-3xl border border-stone-200 hover:border-amber-400 cursor-pointer shadow-xs transition-all active:scale-98 space-y-1.5"
+                className="bg-white dark:bg-stone-900 p-3.5 rounded-3xl border border-stone-200 dark:border-stone-800 hover:border-amber-400 dark:hover:border-amber-500 cursor-pointer shadow-xs transition-all active:scale-98 space-y-1.5"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">
                     {zone.badge}
                   </span>
-                  <span className="text-[10px] text-stone-400 font-mono">{zone.subtitle}</span>
+                  <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">{zone.subtitle}</span>
                 </div>
-                <h4 className="text-xs font-bold text-stone-800">{zone.title}</h4>
+                <h4 className="text-xs font-bold text-stone-800 dark:text-stone-100">{zone.title}</h4>
               </div>
             ))}
           </div>
@@ -658,7 +659,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
 
           {/* Rooms Grid */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-stone-600">
+            <h4 className="text-xs font-bold text-stone-600 dark:text-stone-400">
               🛋️ แตะห้องเพื่อดูรูป 3D และโน้ตบิวท์อิน
             </h4>
 
@@ -671,19 +672,19 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
                   <div
                     key={room.id}
                     onClick={() => setActiveItem(room)}
-                    className="p-3 bg-white rounded-3xl border border-stone-200 hover:border-amber-400 cursor-pointer shadow-xs transition-all active:scale-98 flex items-center justify-between"
+                    className="p-3 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 hover:border-amber-400 dark:hover:border-amber-500 cursor-pointer shadow-xs transition-all active:scale-98 flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center">
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-stone-800">{room.title}</h4>
-                        <span className="text-[10px] text-stone-400">{room.dimensions}</span>
+                        <h4 className="text-xs font-bold text-stone-800 dark:text-stone-100">{room.title}</h4>
+                        <span className="text-[10px] text-stone-400 dark:text-stone-500">{room.dimensions}</span>
                       </div>
                     </div>
 
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
                       {roomNotesCount > 0 ? `${roomNotesCount} โน้ต` : room.badge}
                     </span>
                   </div>
@@ -719,64 +720,64 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
       />
 
       {/* Add / Edit Hotspot Modal (Req 4) */}
-      {editingHotspot && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <form onSubmit={handleSaveHotspot} className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <span className="text-sm font-bold text-stone-800">
+      {editingHotspot && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <form onSubmit={handleSaveHotspot} className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+              <span className="text-sm font-bold text-stone-800 dark:text-stone-100">
                 {editingHotspot?.isNew ? '📍 ปักหมุดจุดใหม่บนภาพ' : '✏️ แก้ไขข้อมูลจุดนี้'}
               </span>
-              <button type="button" onClick={() => setEditingHotspot(null)} className="p-1 text-stone-400">
+              <button type="button" onClick={() => setEditingHotspot(null)} className="p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="grid grid-cols-4 gap-2">
               <div className="col-span-1">
-                <label className="text-[11px] font-bold text-stone-500 block mb-1">หมายเลข</label>
+                <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">หมายเลข</label>
                 <input
                   type="text"
                   value={hotspotNumber}
                   onChange={(e) => setHotspotNumber(e.target.value)}
                   placeholder="1"
-                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 text-center font-bold focus:outline-none"
+                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 text-center font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
               <div className="col-span-3">
-                <label className="text-[11px] font-bold text-stone-500 block mb-1">ชื่อจุด / ชิ้นส่วน</label>
+                <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">ชื่อจุด / ชิ้นส่วน</label>
                 <input
                   type="text"
                   placeholder="เช่น ซุ้มประตู, แนวไฟกิ่ง, กันสาด"
                   value={hotspotTitle}
                   onChange={(e) => setHotspotTitle(e.target.value)}
-                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">คำอธิบายย่อ</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">คำอธิบายย่อ</label>
               <input
                 type="text"
                 placeholder="เช่น ระดับ +0.40 ม., ไฟ Warm White"
                 value={hotspotSubtitle}
                 onChange={(e) => setHotspotSubtitle(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
             {/* Custom Construction Specs Builder (Req 6) */}
-            <div className="space-y-2 pt-1 border-t border-stone-100">
+            <div className="space-y-2 pt-1 border-t border-stone-100 dark:border-stone-800">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-stone-700 flex items-center gap-1">
+                <span className="text-[11px] font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1">
                   <span>📐</span> สเปกก่อสร้าง (ระบุได้เอง)
                 </span>
                 <button
                   type="button"
                   onClick={() => setHotspotSpecs([...hotspotSpecs, { label: '', value: '' }])}
-                  className="text-[10px] font-bold text-amber-700 hover:text-amber-900 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200"
+                  className="text-[10px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-900 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/60"
                 >
                   + เพิ่มสเปก
                 </button>
@@ -784,7 +785,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
 
               <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 {hotspotSpecs.length === 0 ? (
-                  <p className="text-[10px] text-stone-400 italic">ยังไม่มีสเปก กด "+ เพิ่มสเปก" ด้านบนได้เลย</p>
+                  <p className="text-[10px] text-stone-400 dark:text-stone-500 italic">ยังไม่มีสเปก กด "+ เพิ่มสเปก" ด้านบนได้เลย</p>
                 ) : (
                   hotspotSpecs.map((spec, i) => (
                     <div key={i} className="flex gap-1.5 items-center">
@@ -797,7 +798,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
                           updated[i].label = e.target.value;
                           setHotspotSpecs(updated);
                         }}
-                        className="w-1/3 text-[11px] p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                        className="w-1/3 text-[11px] p-2 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                       <input
                         type="text"
@@ -808,12 +809,12 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
                           updated[i].value = e.target.value;
                           setHotspotSpecs(updated);
                         }}
-                        className="flex-1 text-[11px] p-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                        className="flex-1 text-[11px] p-2 rounded-xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       />
                       <button
                         type="button"
                         onClick={() => setHotspotSpecs(hotspotSpecs.filter((_, idx) => idx !== i))}
-                        className="p-1 text-stone-400 hover:text-rose-500"
+                        className="p-1 text-stone-400 hover:text-rose-500 dark:hover:text-rose-400"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -827,7 +828,7 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
               <button
                 type="button"
                 onClick={() => setEditingHotspot(null)}
-                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 text-stone-600 font-bold"
+                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
               >
                 ยกเลิก
               </button>
@@ -839,7 +840,8 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Hotspot Confirmation Modal (Req 1 & 4) */}

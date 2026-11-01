@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, DollarSign, Receipt, Trash2, Edit3, Image as ImageIcon, X, Calendar, User, Download, Check, Filter } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
@@ -181,14 +182,14 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
 
       {/* Filter Active Hint Banner (Req 5) */}
       {filterPayer !== 'ALL' && (
-        <div className="flex items-center justify-between text-xs px-3.5 py-2 rounded-2xl bg-amber-100/90 border border-amber-300 text-stone-800 font-bold animate-slide-up">
+        <div className="flex items-center justify-between text-xs px-3.5 py-2 rounded-2xl bg-amber-100/90 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 text-stone-800 dark:text-amber-200 font-bold animate-slide-up">
           <span className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-amber-700" />
+            <Filter className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
             กำลังแสดงเฉพาะที่: {filterPayer === 'JOB' ? '👔 JOB จ่าย' : '🌸 Pealpeal จ่าย'}
           </span>
           <button 
             onClick={() => setFilterPayer('ALL')}
-            className="text-amber-900 underline text-[11px] hover:text-black font-extrabold"
+            className="text-amber-900 dark:text-amber-300 underline text-[11px] hover:text-black dark:hover:text-white font-extrabold"
           >
             ล้างตัวกรอง
           </button>
@@ -197,7 +198,7 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
 
       {/* Action Header */}
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-stone-700">
+        <h4 className="text-xs font-bold text-stone-700 dark:text-stone-300">
           📋 รายการค่าใช้จ่าย ({displayedExpenses.length} รายการ)
         </h4>
 
@@ -213,63 +214,63 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
       </div>
 
       {/* Add / Edit Transaction Drawer Modal */}
-      {isAdding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <span className="text-sm font-bold text-stone-800">
+      {isAdding && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+              <span className="text-sm font-bold text-stone-800 dark:text-stone-100">
                 {editingExpense ? '✏️ แก้ไขรายการจ่าย' : '💸 บันทึกรายการจ่ายใหม่'}
               </span>
-              <button type="button" onClick={() => setIsAdding(false)} className="p-1 text-stone-400">
+              <button type="button" onClick={() => setIsAdding(false)} className="p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">ชื่อรายการ</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">ชื่อรายการ</label>
               <input
                 type="text"
                 placeholder="เช่น ค่ามัดจำเสาเข็ม, ประตูรั้ว, กระเบื้อง"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[11px] font-bold text-stone-500 block mb-1">จำนวนเงิน (บาท)</label>
+                <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">จำนวนเงิน (บาท)</label>
                 <input
                   type="number"
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                  className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-stone-500 block mb-1">วันที่จ่าย</label>
+                <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">วันที่จ่าย</label>
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full text-xs p-2 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                  className="w-full text-xs p-2 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
 
             {/* Paid By Selector (JOB vs Pealpeal) */}
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">ใครเป็นคนจ่าย?</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">ใครเป็นคนจ่าย?</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaidBy('JOB')}
                   className={`py-2 rounded-2xl text-xs font-bold transition-all ${
-                    paidBy === 'JOB' ? 'bg-sky-600 text-white shadow-xs' : 'bg-stone-100 text-stone-600'
+                    paidBy === 'JOB' ? 'bg-sky-600 text-white shadow-xs' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                   }`}
                 >
                   👔 JOB จ่าย
@@ -278,7 +279,7 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
                   type="button"
                   onClick={() => setPaidBy('Pealpeal')}
                   className={`py-2 rounded-2xl text-xs font-bold transition-all ${
-                    paidBy === 'Pealpeal' ? 'bg-rose-500 text-white shadow-xs' : 'bg-stone-100 text-stone-600'
+                    paidBy === 'Pealpeal' ? 'bg-rose-500 text-white shadow-xs' : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                   }`}
                 >
                   🌸 Pealpeal จ่าย
@@ -288,20 +289,20 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
 
             {/* Slip Upload from Device (Req 3: preserve proportion, no crop) */}
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">แนบรูปสลิป / ใบเสร็จ</label>
-              <label className="flex items-center gap-2 p-2.5 rounded-2xl bg-stone-50 border border-dashed border-stone-300 text-stone-600 text-xs cursor-pointer hover:bg-stone-100">
-                <Receipt className="w-4 h-4 text-amber-600" />
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">แนบรูปสลิป / ใบเสร็จ</label>
+              <label className="flex items-center gap-2 p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-950 border border-dashed border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+                <Receipt className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>📷 ถ่ายสลิป / อัพโหลดรูปจากเครื่อง</span>
                 <input type="file" accept="image/*" onChange={handleSlipUpload} className="hidden" />
               </label>
 
               {slipImage && (
-                <div className="relative mt-2 rounded-2xl overflow-hidden border border-stone-200 max-h-44 bg-stone-100 p-1">
+                <div className="relative mt-2 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 max-h-44 bg-stone-100 dark:bg-stone-950 p-1">
                   <img src={slipImage} alt="Slip" className="w-full h-full max-h-40 object-contain mx-auto" />
                   <button
                     type="button"
                     onClick={() => setSlipImage(null)}
-                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white"
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black/80"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -313,7 +314,7 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
               <button
                 type="button"
                 onClick={() => setIsAdding(false)}
-                className="flex-1 py-2 text-xs bg-stone-100 rounded-2xl text-stone-600 font-bold"
+                className="flex-1 py-2 text-xs bg-stone-100 dark:bg-stone-800 rounded-2xl text-stone-600 dark:text-stone-300 font-bold hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
               >
                 ยกเลิก
               </button>
@@ -327,18 +328,19 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Expenses List */}
       <div className="space-y-2.5">
         {displayedExpenses.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-stone-200 text-stone-400 text-xs space-y-1">
+          <div className="text-center py-12 bg-white dark:bg-stone-900 rounded-3xl border border-dashed border-stone-200 dark:border-stone-800 text-stone-400 dark:text-stone-500 text-xs space-y-1">
             <p>ไม่พบรายการรายจ่ายตามเงื่อนไขที่เลือก</p>
             {filterPayer !== 'ALL' && (
               <button 
                 onClick={() => setFilterPayer('ALL')}
-                className="text-amber-700 underline text-xs font-bold block mx-auto mt-1"
+                className="text-amber-700 dark:text-amber-400 underline text-xs font-bold block mx-auto mt-1"
               >
                 กดเพื่อดูรายการทั้งหมด
               </button>
@@ -351,35 +353,35 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
             return (
               <div 
                 key={exp.id}
-                className="p-3.5 bg-white rounded-3xl border border-stone-200/90 shadow-xs flex items-center justify-between gap-3 transition-all"
+                className="p-3.5 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200/90 dark:border-stone-800 shadow-xs flex items-center justify-between gap-3 transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {/* Slip Thumbnail - strictly object-contain with no cropping! (Req 3) */}
                   {exp.slipImage ? (
                     <div 
                       onClick={() => setViewingSlip({ src: exp.slipImage, alt: `สลิป - ${exp.title}` })}
-                      className="w-13 h-13 rounded-2xl overflow-hidden border border-amber-300 bg-stone-100 shrink-0 cursor-pointer shadow-xs active:scale-95 p-0.5 flex items-center justify-center relative group"
+                      className="w-13 h-13 rounded-2xl overflow-hidden border border-amber-300 dark:border-amber-700/60 bg-stone-100 dark:bg-stone-950 shrink-0 cursor-pointer shadow-xs active:scale-95 p-0.5 flex items-center justify-center relative group"
                       title="แตะเพื่อดูสลิปเต็ม & บันทึกลงเครื่อง"
                     >
                       <img src={exp.slipImage} alt="Slip" className="w-full h-full object-contain" />
                     </div>
                   ) : (
-                    <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0 font-bold">
+                    <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center shrink-0 font-bold">
                       ฿
                     </div>
                   )}
 
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-stone-800 truncate">
+                    <h4 className="text-xs font-bold text-stone-800 dark:text-stone-100 truncate">
                       {exp.title}
                     </h4>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={`text-[9px] font-bold px-2 py-0.2 rounded-full ${
-                        expIsJob ? 'bg-sky-100 text-sky-800' : 'bg-rose-100 text-rose-800'
+                        expIsJob ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300'
                       }`}>
                         {expIsJob ? '👔 JOB จ่าย' : '🌸 Pealpeal จ่าย'}
                       </span>
-                      <span className="text-[10px] text-stone-400 font-mono">
+                      <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono">
                         {exp.date}
                       </span>
                     </div>
@@ -388,14 +390,14 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
 
                 {/* Amount & Actions */}
                 <div className="text-right shrink-0">
-                  <span className="text-sm font-black text-stone-900 block">
+                  <span className="text-sm font-black text-stone-900 dark:text-stone-100 block">
                     ฿{Number(exp.amount).toLocaleString()}
                   </span>
 
                   <div className="flex items-center justify-end gap-1 mt-1">
                     <button
                       onClick={() => handleOpenEdit(exp)}
-                      className="p-1 text-stone-400 hover:text-stone-700 active:scale-90"
+                      className="p-1 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 active:scale-90"
                       title="แก้ไข"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -404,7 +406,7 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
                     {/* Delete button (Req 1: opens ConfirmModal) */}
                     <button
                       onClick={() => setExpenseToDelete(exp)}
-                      className="p-1 text-stone-400 hover:text-rose-500 active:scale-90"
+                      className="p-1 text-stone-400 hover:text-rose-500 dark:hover:text-rose-400 active:scale-90"
                       title="ลบ"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

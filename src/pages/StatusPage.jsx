@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle2, Clock, Circle, Plus, Edit3, Image as ImageIcon, Trash2, X, GripVertical } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
@@ -116,8 +117,8 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
       {/* Top Header Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-stone-800">🏗️ สถานะความคืบหน้าโครงการ</h3>
-          <p className="text-[11px] text-stone-400">กดค้างที่ไอคอน ⠿ เพื่อลากสลับลำดับขั้นตอน</p>
+          <h3 className="text-sm font-bold text-stone-800 dark:text-stone-100">🏗️ สถานะความคืบหน้าโครงการ</h3>
+          <p className="text-[11px] text-stone-400 dark:text-stone-500">กดค้างที่ไอคอน ⠿ เพื่อลากสลับลำดับขั้นตอน</p>
         </div>
 
         <button
@@ -133,20 +134,20 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
 
       {/* Add Stage Form */}
       {isAddingStage && (
-        <form onSubmit={handleAddStage} className="p-3.5 bg-white rounded-3xl border border-stone-200 shadow-md space-y-2.5 animate-slide-up">
-          <span className="text-xs font-bold text-stone-800">เพิ่มขั้นตอนการก่อสร้างใหม่</span>
+        <form onSubmit={handleAddStage} className="p-3.5 bg-white dark:bg-stone-900 rounded-3xl border border-stone-200 dark:border-stone-800 shadow-md space-y-2.5 animate-slide-up">
+          <span className="text-xs font-bold text-stone-800 dark:text-stone-200">เพิ่มขั้นตอนการก่อสร้างใหม่</span>
           <input
             type="text"
             placeholder="ชื่อขั้นตอน (เช่น เทพื้นลานซักล้าง, สั่งของตกแต่ง)"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setIsAddingStage(false)}
-              className="flex-1 py-1.5 text-xs rounded-xl bg-stone-100 text-stone-600 font-bold"
+              className="flex-1 py-1.5 text-xs rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold"
             >
               ยกเลิก
             </button>
@@ -186,8 +187,8 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
                     isPastActive 
                       ? 'w-[3px] bg-emerald-500 shadow-xs' 
                       : (isCurrentActive && isInProgress)
-                        ? 'w-[3px] bg-gradient-to-b from-amber-400 to-stone-200' 
-                        : 'w-[2px] bg-stone-200'
+                        ? 'w-[3px] bg-gradient-to-b from-amber-400 to-stone-200 dark:to-stone-700' 
+                        : 'w-[2px] bg-stone-200 dark:bg-stone-800'
                   }`}
                 />
               )}
@@ -197,10 +198,10 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
                 onClick={() => handleToggleStatus(stage.id)}
                 className={`absolute -left-7 top-2.5 w-7 h-7 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all shadow-xs z-10 ${
                   isDone 
-                    ? 'bg-emerald-500 border-white text-white scale-95 shadow-emerald-200' 
+                    ? 'bg-emerald-500 border-white dark:border-stone-900 text-white scale-95 shadow-emerald-200' 
                     : isInProgress 
-                      ? 'bg-amber-400 border-white text-stone-900 animate-pulse ring-2 ring-amber-200' 
-                      : 'bg-white border-stone-300 text-stone-300'
+                      ? 'bg-amber-400 border-white dark:border-stone-900 text-stone-900 animate-pulse ring-2 ring-amber-200 dark:ring-amber-900/60' 
+                      : 'bg-white dark:bg-stone-800 border-stone-300 dark:border-stone-700 text-stone-300 dark:text-stone-600'
                 }`}
               >
                 {isDone && <CheckCircle2 className="w-3.5 h-3.5" />}
@@ -214,33 +215,33 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
                 onDragStart={(e) => handleDragStart(e, idx)}
                 className={`flex-1 p-3.5 rounded-3xl border transition-all ${
                   isDone 
-                    ? 'bg-emerald-50/50 border-emerald-200/80 opacity-80' 
+                    ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200/80 dark:border-emerald-800/60 opacity-80' 
                     : isInProgress 
-                      ? 'bg-amber-50/90 border-amber-300 shadow-xs ring-1 ring-amber-200' 
-                      : 'bg-white border-stone-200/90 shadow-xs'
+                      ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 shadow-xs ring-1 ring-amber-200 dark:ring-amber-900/60' 
+                      : 'bg-white dark:bg-stone-900 border-stone-200/90 dark:border-stone-800/90 shadow-xs'
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0" onClick={() => handleToggleStatus(stage.id)}>
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-[10px] font-mono text-stone-400 font-bold">
+                      <span className="text-[10px] font-mono text-stone-400 dark:text-stone-500 font-bold">
                         #{idx + 1}
                       </span>
                       <span className={`text-[9px] px-2 py-0.2 rounded-full font-bold ${
-                        isDone ? 'bg-emerald-100 text-emerald-800' :
-                        isInProgress ? 'bg-amber-100 text-amber-800' :
-                        'bg-stone-100 text-stone-500'
+                        isDone ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' :
+                        isInProgress ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300' :
+                        'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
                       }`}>
                         {isDone ? 'เสร็จแล้ว' : isInProgress ? 'กำลังทำ' : 'รอเริ่ม'}
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-stone-800 leading-snug">
+                    <h4 className="text-xs font-bold text-stone-900 dark:text-stone-100 leading-snug">
                       {stage.title}
                     </h4>
 
                     {stage.notes && (
-                      <p className="text-[11px] text-stone-500 mt-1 leading-relaxed">
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 leading-relaxed">
                         {stage.notes}
                       </p>
                     )}
@@ -250,7 +251,7 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => handleOpenEdit(stage)}
-                      className="p-1.5 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-90"
+                      className="p-1.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 active:scale-90"
                       title="แก้ไข / ใส่รูป"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
@@ -258,7 +259,7 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
 
                     {/* Drag Handle Grip (Req 4) */}
                     <div 
-                      className="p-1.5 text-stone-400 hover:text-stone-700 cursor-grab active:cursor-grabbing"
+                      className="p-1.5 text-stone-400 dark:text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 cursor-grab active:cursor-grabbing"
                       title="กดค้างเพื่อลากสลับลำดับ"
                     >
                       <GripVertical className="w-4 h-4" />
@@ -270,7 +271,7 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
                 {stage.photo && (
                   <div 
                     onClick={() => setViewingPhoto({ src: stage.photo, alt: stage.title })}
-                    className="mt-2.5 rounded-2xl overflow-hidden border border-stone-200 max-h-36 bg-stone-100 cursor-pointer shadow-xs active:scale-98 transition-transform relative group"
+                    className="mt-2.5 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 max-h-36 bg-stone-100 dark:bg-stone-800 cursor-pointer shadow-xs active:scale-98 transition-transform relative group"
                     title="แตะเพื่อดูภาพขนาดเต็ม / บันทึกลงเครื่อง"
                   >
                     <img src={stage.photo} alt={stage.title} className="w-full h-full object-cover" />
@@ -287,48 +288,48 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
       </div>
 
       {/* Edit Stage Modal */}
-      {editingStage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <form onSubmit={handleSaveEdit} className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-stone-200 space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-100">
-              <span className="text-sm font-bold text-stone-800">แก้ไขขั้นตอน</span>
-              <button type="button" onClick={() => setEditingStage(null)} className="p-1 text-stone-400">
+      {editingStage && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <form onSubmit={handleSaveEdit} className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-stone-100 dark:border-stone-800">
+              <span className="text-sm font-bold text-stone-900 dark:text-stone-100">แก้ไขขั้นตอน</span>
+              <button type="button" onClick={() => setEditingStage(null)} className="p-1 text-stone-400 dark:text-stone-500">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">ชื่อขั้นตอน</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">ชื่อขั้นตอน</label>
               <input
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">บันทึกเพิ่มเติม</label>
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">บันทึกเพิ่มเติม</label>
               <textarea
                 rows={2}
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
                 placeholder="รายละเอียดความคืบหน้า..."
-                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-800 focus:outline-none"
+                className="w-full text-xs p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none"
               />
             </div>
 
             {/* Photo Upload for Status */}
             <div>
-              <label className="text-[11px] font-bold text-stone-500 block mb-1">รูปหน้างานจริง</label>
-              <label className="flex items-center gap-2 p-2.5 rounded-2xl bg-stone-50 border border-dashed border-stone-300 text-stone-600 text-xs cursor-pointer hover:bg-stone-100">
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">รูปหน้างานจริง</label>
+              <label className="flex items-center gap-2 p-2.5 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-dashed border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-750">
                 <ImageIcon className="w-4 h-4 text-amber-600" />
                 <span>📷 ถ่ายรูป / เลือกรูปจากเครื่อง</span>
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
               </label>
 
               {editPhoto && (
-                <div className="relative mt-2 rounded-2xl overflow-hidden border border-stone-200 max-h-32 bg-stone-100">
+                <div className="relative mt-2 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 max-h-32 bg-stone-100 dark:bg-stone-800">
                   <img src={editPhoto} alt="Stage preview" className="w-full h-full object-contain" />
                   <button
                     type="button"
@@ -345,7 +346,7 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
               <button
                 type="button"
                 onClick={() => setStageToDelete(editingStage)}
-                className="p-2.5 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 transition-all"
+                className="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900 active:scale-95 transition-all"
                 title="ลบขั้นตอนนี้"
               >
                 <Trash2 className="w-4 h-4" />
@@ -353,7 +354,7 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
               <button
                 type="button"
                 onClick={() => setEditingStage(null)}
-                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 text-stone-600 font-bold"
+                className="flex-1 py-2.5 rounded-2xl text-xs bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-bold"
               >
                 ยกเลิก
               </button>
@@ -365,7 +366,8 @@ export default function StatusPage({ stages, onUpdateStages, currentUser }) {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete Confirmation Modal (Req 1) */}
