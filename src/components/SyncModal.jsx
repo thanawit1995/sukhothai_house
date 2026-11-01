@@ -48,7 +48,7 @@ export default function SyncModal({ isOpen, onClose, onSyncComplete }) {
 
   if (!isOpen) return null;
 
-  // SQL Script for Supabase setup
+  // SQL Script for Supabase setup (Idempotent - safe to run multiple times)
   const SUPABASE_SQL = `-- 1. สร้างตารางสำหรับเก็บข้อมูลซิงค์ของบ้านเรา
 CREATE TABLE IF NOT EXISTS public.home_app_sync (
   id text PRIMARY KEY,
@@ -60,14 +60,25 @@ CREATE TABLE IF NOT EXISTS public.home_app_sync (
 ALTER TABLE public.home_app_sync ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow couples all operations" ON public.home_app_sync;
-CREATE POLICY "Allow couples all operations"
+DROP POLICY IF EXISTS "Allow couples all" ON public.home_app_sync;
+CREATE POLICY "Allow couples all"
 ON public.home_app_sync
 FOR ALL
 USING (true)
 WITH CHECK (true);
 
--- 3. เปิดระบบ Realtime เพื่อให้ข้อมูลเด้งข้ามเครื่องทันที
-ALTER PUBLICATION supabase_realtime ADD TABLE public.home_app_sync;`;
+-- 3. เปิดระบบ Realtime (เช็คก่อนเพิ่ม ป้องกัน Error 42710)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' 
+    AND schemaname = 'public' 
+    AND tablename = 'home_app_sync'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.home_app_sync;
+  END IF;
+END $$;`;
 
   // Format date nicely
   const formatTime = (isoString) => {
