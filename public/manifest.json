@@ -1,13 +1,13 @@
 {
-  "name": "บ้านของเรา - JOB & Pealpeal",
-  "short_name": "บ้านเรา",
-  "description": "แอปพลิเคชันวางแผนสร้างบ้านและบันทึกร่วมกัน โครงการบ้านรัตนาภร เฟส 8",
+  "name": "บ้านรัตนากร เฟส 10 - JOB & Pealpeal",
+  "short_name": "บ้านรัตนากร 10",
+  "description": "แอปพลิเคชันวางแผนสร้างบ้านและบันทึกร่วมกัน โครงการบ้านรัตนากร เฟส 10",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fafaf9",
-  "theme_color": "#1c1917",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
   "icons": [
     {
       "src": "./icons/icon-192.png",
