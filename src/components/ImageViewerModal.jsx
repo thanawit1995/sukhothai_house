@@ -738,6 +738,82 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
   };
 
   // ================= EDIT MODE: CROP LOGIC =================
+  const handleCropPointerDown = (e, handleType) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      e.target.setPointerCapture?.(e.pointerId);
+    } catch {}
+
+    const img = imageRef.current;
+    if (!img) return;
+    const rect = img.getBoundingClientRect();
+
+    cropDragState.current = {
+      isDragging: true,
+      handle: handleType,
+      startX: e.clientX,
+      startY: e.clientY,
+      imgWidth: rect.width,
+      imgHeight: rect.height,
+      startRect: { ...cropRect }
+    };
+  };
+
+  const handleCropPointerMove = (e) => {
+    const state = cropDragState.current;
+    if (!state.isDragging || !state.startRect) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const deltaNormX = (e.clientX - state.startX) / state.imgWidth;
+    const deltaNormY = (e.clientY - state.startY) / state.imgHeight;
+    const minSize = 0.05; // min 5% of width/height
+    const sr = state.startRect;
+
+    if (state.handle === 'move') {
+      const newX = Math.min(Math.max(sr.x + deltaNormX, 0), 1 - sr.w);
+      const newY = Math.min(Math.max(sr.y + deltaNormY, 0), 1 - sr.h);
+      setCropRect({ x: newX, y: newY, w: sr.w, h: sr.h });
+      return;
+    }
+
+    let newX = sr.x;
+    let newY = sr.y;
+    let newW = sr.w;
+    let newH = sr.h;
+
+    // Handles: 'nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'
+    if (state.handle.includes('w')) {
+      const clampedX = Math.min(Math.max(sr.x + deltaNormX, 0), sr.x + sr.w - minSize);
+      newW = sr.w - (clampedX - sr.x);
+      newX = clampedX;
+    }
+    if (state.handle.includes('e')) {
+      newW = Math.min(Math.max(sr.w + deltaNormX, minSize), 1 - sr.x);
+    }
+    if (state.handle.includes('n')) {
+      const clampedY = Math.min(Math.max(sr.y + deltaNormY, 0), sr.y + sr.h - minSize);
+      newH = sr.h - (clampedY - sr.y);
+      newY = clampedY;
+    }
+    if (state.handle.includes('s')) {
+      newH = Math.min(Math.max(sr.h + deltaNormY, minSize), 1 - sr.y);
+    }
+
+    setCropRect({ x: newX, y: newY, w: newW, h: newH });
+  };
+
+  const handleCropPointerUp = (e) => {
+    if (cropDragState.current.isDragging) {
+      cropDragState.current.isDragging = false;
+      cropDragState.current.handle = null;
+      try {
+        e.target.releasePointerCapture?.(e.pointerId);
+      } catch {}
+    }
+  };
+
   const handleCropPreset = (aspect) => {
     if (aspect === 'free') {
       setCropRect({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
@@ -1036,10 +1112,16 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
 
           {/* Interactive Crop Box Overlay (Crop Mode) */}
           {isEditing && activeTool === 'crop' && (
-            <div className="absolute inset-0 z-30 pointer-events-none">
+            <div 
+              className="absolute inset-0 z-30 select-none"
+              style={{ touchAction: 'none' }}
+              onPointerMove={handleCropPointerMove}
+              onPointerUp={handleCropPointerUp}
+              onPointerCancel={handleCropPointerUp}
+            >
               {/* Dark Mask Outside Crop Box */}
               <div 
-                className="absolute inset-0 bg-black/60"
+                className="absolute inset-0 bg-black/60 pointer-events-none"
                 style={{
                   clipPath: `polygon(
                     0% 0%, 100% 0%, 100% 100%, 0% 100%,
@@ -1053,15 +1135,17 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
                 }}
               />
 
-              {/* Crop Bounding Box */}
+              {/* Crop Bounding Box with Move & Handles */}
               <div
-                className="absolute border-2 border-dashed border-amber-400 pointer-events-auto shadow-2xl shadow-black/80"
+                className="absolute border-2 border-amber-400 shadow-2xl shadow-black/80 cursor-move"
                 style={{
                   left: `${cropRect.x * 100}%`,
                   top: `${cropRect.y * 100}%`,
                   width: `${cropRect.w * 100}%`,
-                  height: `${cropRect.h * 100}%`
+                  height: `${cropRect.h * 100}%`,
+                  touchAction: 'none'
                 }}
+                onPointerDown={(e) => handleCropPointerDown(e, 'move')}
               >
                 {/* Rule of Thirds Grid Lines */}
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40">
@@ -1074,6 +1158,77 @@ export default function ImageViewerModal({ isOpen, src, alt = 'รูปภา�
                   <div className="border-r border-amber-200" />
                   <div className="border-r border-amber-200" />
                   <div />
+                </div>
+
+                {/* Helpful Instruction Pill */}
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-amber-400 text-stone-950 text-[9px] font-bold pointer-events-none whitespace-nowrap shadow-md">
+                  ลากที่มุมเพื่อปรับกรอบ • ลากตรงกลางเพื่อเลื่อน
+                </div>
+
+                {/* 4 Corner Resize Handles */}
+                {/* Top-Left (NW) */}
+                <div
+                  className="absolute -top-3.5 -left-3.5 w-7 h-7 flex items-center justify-center cursor-nwse-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'nw')}
+                >
+                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-lg active:scale-125 transition-transform" />
+                </div>
+
+                {/* Top-Right (NE) */}
+                <div
+                  className="absolute -top-3.5 -right-3.5 w-7 h-7 flex items-center justify-center cursor-nesw-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'ne')}
+                >
+                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-lg active:scale-125 transition-transform" />
+                </div>
+
+                {/* Bottom-Left (SW) */}
+                <div
+                  className="absolute -bottom-3.5 -left-3.5 w-7 h-7 flex items-center justify-center cursor-nesw-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'sw')}
+                >
+                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-lg active:scale-125 transition-transform" />
+                </div>
+
+                {/* Bottom-Right (SE) */}
+                <div
+                  className="absolute -bottom-3.5 -right-3.5 w-7 h-7 flex items-center justify-center cursor-nwse-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'se')}
+                >
+                  <div className="w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-lg active:scale-125 transition-transform" />
+                </div>
+
+                {/* 4 Edge Handles */}
+                {/* Top (N) */}
+                <div
+                  className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-12 h-5 flex items-center justify-center cursor-ns-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'n')}
+                >
+                  <div className="w-7 h-1.5 rounded-full bg-white shadow-md active:scale-110 transition-transform" />
+                </div>
+
+                {/* Bottom (S) */}
+                <div
+                  className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-12 h-5 flex items-center justify-center cursor-ns-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 's')}
+                >
+                  <div className="w-7 h-1.5 rounded-full bg-white shadow-md active:scale-110 transition-transform" />
+                </div>
+
+                {/* Left (W) */}
+                <div
+                  className="absolute top-1/2 -left-2.5 -translate-y-1/2 w-5 h-12 flex items-center justify-center cursor-ew-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'w')}
+                >
+                  <div className="w-1.5 h-7 rounded-full bg-white shadow-md active:scale-110 transition-transform" />
+                </div>
+
+                {/* Right (E) */}
+                <div
+                  className="absolute top-1/2 -right-2.5 -translate-y-1/2 w-5 h-12 flex items-center justify-center cursor-ew-resize z-40 touch-none"
+                  onPointerDown={(e) => handleCropPointerDown(e, 'e')}
+                >
+                  <div className="w-1.5 h-7 rounded-full bg-white shadow-md active:scale-110 transition-transform" />
                 </div>
               </div>
             </div>

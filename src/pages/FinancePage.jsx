@@ -111,22 +111,13 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
         {/* Total Card (Click to reset filter to ALL) */}
         <div 
           onClick={() => setFilterPayer('ALL')}
-          className={`p-2.5 rounded-2xl cursor-pointer transition-all active:scale-98 ${
-            filterPayer === 'ALL' 
-              ? 'bg-stone-950/20 ring-2 ring-stone-950/40 shadow-inner' 
-              : 'hover:bg-stone-950/10'
-          }`}
+          className="p-2.5 rounded-2xl cursor-pointer transition-all active:scale-98"
           title="แตะเพื่อดูค่าใช้จ่ายทั้งหมด"
         >
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider opacity-85">
-              รวมค่าใช้จ่ายสร้างบ้านทั้งหมด (แตะเพื่อดูทั้งหมด)
+              รวมค่าใช้จ่ายสร้างบ้านทั้งหมด
             </span>
-            {filterPayer === 'ALL' && (
-              <span className="text-[9px] bg-stone-950 text-amber-300 font-bold px-2 py-0.2 rounded-full">
-                กำลังดูทั้งหมด
-              </span>
-            )}
           </div>
           <h2 className="text-2xl font-black tracking-tight mt-0.5">
             ฿{totalSpent.toLocaleString()}
@@ -137,10 +128,10 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
         <div className="grid grid-cols-2 gap-2 pt-1 border-t border-stone-950/15">
           {/* JOB Filter Card */}
           <div 
-            onClick={() => setFilterPayer('JOB')}
+            onClick={() => setFilterPayer(prev => prev === 'JOB' ? 'ALL' : 'JOB')}
             className={`p-2.5 rounded-2xl cursor-pointer transition-all active:scale-95 ${
               filterPayer === 'JOB'
-                ? 'bg-white shadow-md ring-3 ring-sky-500 scale-102 text-stone-900'
+                ? 'bg-white shadow-md ring-3 ring-sky-500 text-stone-900'
                 : 'bg-white/30 backdrop-blur-xs hover:bg-white/40'
             }`}
             title="แตะเพื่อดูเฉพาะรายการที่ JOB จ่าย"
@@ -149,7 +140,6 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
               <span className="text-[10px] font-bold block opacity-90 flex items-center gap-1">
                 <span>👔</span> JOB จ่ายแล้ว
               </span>
-              {filterPayer === 'JOB' && <span className="text-[9px] font-bold text-sky-600">● เลือกอยู่</span>}
             </div>
             <span className="text-base font-black text-sky-950">
               ฿{jobTotal.toLocaleString()}
@@ -158,10 +148,10 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
 
           {/* Pealpeal Filter Card */}
           <div 
-            onClick={() => setFilterPayer('Pealpeal')}
+            onClick={() => setFilterPayer(prev => prev === 'Pealpeal' ? 'ALL' : 'Pealpeal')}
             className={`p-2.5 rounded-2xl cursor-pointer transition-all active:scale-95 ${
               filterPayer === 'Pealpeal'
-                ? 'bg-white shadow-md ring-3 ring-rose-500 scale-102 text-stone-900'
+                ? 'bg-white shadow-md ring-3 ring-rose-500 text-stone-900'
                 : 'bg-white/30 backdrop-blur-xs hover:bg-white/40'
             }`}
             title="แตะเพื่อดูเฉพาะรายการที่ Pealpeal จ่าย"
@@ -170,7 +160,6 @@ export default function FinancePage({ expenses, onAddExpense, onUpdateExpense, o
               <span className="text-[10px] font-bold block opacity-90 flex items-center gap-1">
                 <span>🌸</span> Pealpeal จ่ายแล้ว
               </span>
-              {filterPayer === 'Pealpeal' && <span className="text-[9px] font-bold text-rose-600">● เลือกอยู่</span>}
             </div>
             <span className="text-base font-black text-rose-950">
               ฿{pealTotal.toLocaleString()}
