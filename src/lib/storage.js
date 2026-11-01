@@ -436,6 +436,13 @@ export const StorageService = {
         .maybeSingle();
 
       if (readError) {
+        if (readError.message?.toLowerCase().includes('invalid path') || readError.message?.toLowerCase().includes('requested path')) {
+          return {
+            success: false,
+            code: 'INVALID_PATH',
+            error: 'URL หรือเส้นทางฐานข้อมูลไม่ถูกต้อง (ต้องเป็น https://<project-ref>.supabase.co เท่านั้น โดยไม่มี /rest/v1 หรือ / ต่อท้าย)'
+          };
+        }
         if (readError.code === '42P01') {
           return {
             success: false,

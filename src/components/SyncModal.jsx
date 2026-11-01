@@ -18,7 +18,7 @@ import {
   ShieldCheck,
   Smartphone
 } from 'lucide-react';
-import { getSupabaseConfig, saveSupabaseConfig, clearSupabaseConfig } from '../lib/supabase';
+import { getSupabaseConfig, saveSupabaseConfig, clearSupabaseConfig, sanitizeSupabaseUrl } from '../lib/supabase';
 import { StorageService } from '../lib/storage';
 
 export default function SyncModal({ isOpen, onClose, onSyncComplete }) {
@@ -98,7 +98,8 @@ END $$;`;
       setFeedback({ type: 'error', message: 'กรุณากรอกทั้ง Project URL และ Anon Key' });
       return;
     }
-    saveSupabaseConfig(url, key);
+    const cleanUrl = sanitizeSupabaseUrl(url);
+    saveSupabaseConfig(cleanUrl, key);
   };
 
   // Handle Test Connection & Sync Now
