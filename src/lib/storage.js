@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, getSupabaseConfig } from './supabase';
 
 const INITIAL_STAGES = [
   { id: '1', title: 'รังวัดที่ดิน RTK GNSS (๒๖.๒๒ x ๑๔.๔๕ ม.)', status: 'done', photo: './images/cadastral_survey.jpg', notes: 'ช่างรังวัดปักหมุดครบแล้ว แปลงหน้ากว้าง 26.22 เมตร ได้พื้นที่ ~95 ตร.ว.' },
@@ -383,6 +383,149 @@ export const StorageService = {
     StorageService.triggerAutoSync();
   },
 
+  // SYNC DIAGNOSTICS & STATUS
+  getLastSyncTime: () => {
+    return localStorage.getItem('home_last_sync_time') || null;
+  },
+
+  setLastSyncTime: (isoString) => {
+    localStorage.setItem('home_last_sync_time', isoString || new Date().toISOString());
+  },
+
+  getLastSyncError: () => {
+    return localStorage.getItem('home_last_sync_error') || null;
+  },
+
+  setLastSyncError: (err) => {
+    if (err) {
+      localStorage.setItem('home_last_sync_error', typeof err === 'string' ? err : JSON.stringify(err));
+    } else {
+      localStorage.removeItem('home_last_sync_error');
+    }
+  },
+
+  getSyncStatus: () => {
+    const config = getSupabaseConfig();
+    const isConfigured = !!(config.url && config.key);
+    const lastSyncTime = StorageService.getLastSyncTime();
+    const lastError = StorageService.getLastSyncError();
+    return {
+      isConfigured,
+      isConnected: isConfigured && !lastError,
+      hasError: !!lastError,
+      lastSyncTime,
+      lastError
+    };
+  },
+
+  // Test Supabase Connection & Permissions
+  testConnection: async () => {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'ยังไม่ได้ระบุ Supabase Project URL หรือ Anon Key'
+      };
+    }
+
+    try {
+      // 1. Test reading from home_app_sync table
+      const { data, error: readError } = await supabase
+        .from('home_app_sync')
+        .select('id, updated_at')
+        .eq('id', 'rattanakorn_phase10')
+        .maybeSingle();
+
+      if (readError) {
+        if (readError.code === '42P01') {
+          return {
+            success: false,
+            code: 'TABLE_NOT_FOUND',
+            error: 'ยังไม่พบตาราง home_app_sync ในฐานข้อมูล Supabase (กรุณากดปุ่ม "คัดลอก SQL" แล้วนำไปกด Run ใน Supabase SQL Editor)'
+          };
+        }
+        if (readError.code === '42501' || readError.message?.toLowerCase().includes('policy') || readError.message?.toLowerCase().includes('permission')) {
+          return {
+            success: false,
+            code: 'RLS_ERROR',
+            error: 'ติดสิทธิ์ความปลอดภัย (Row Level Security) กรุณารันคำสั่ง SQL สร้าง Policy เพื่อเปิดสิทธิ์อ่าน/เขียน'
+          };
+        }
+        return {
+          success: false,
+          code: readError.code || 'SUPABASE_ERROR',
+          error: `Supabase ส่งคืนข้อผิดพลาด: ${readError.message || readError.code}`
+        };
+      }
+
+      // 2. Test writing current data
+      const syncRes = await StorageService.triggerAutoSync();
+      if (syncRes.error) {
+        return {
+          success: false,
+          error: `อ่านฐานข้อมูลสำเร็จ แต่ไม่สามารถบันทึกข้อมูลได้: ${syncRes.error}`
+        };
+      }
+
+      return {
+        success: true,
+        message: 'เชื่อมต่อและซิงค์ข้อมูลกับ Supabase สำเร็จเรียบร้อยแล้ว!'
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.message || 'เกิดข้อผิดพลาดในการทดสอบเชื่อมต่อ'
+      };
+    }
+  },
+
+  // EXPORT & IMPORT BACKUP (JSON)
+  exportBackup: () => {
+    try {
+      const data = {
+        notes: StorageService.getNotes(),
+        stages: StorageService.getStages(),
+        expenses: StorageService.getExpenses(),
+        notifications: StorageService.getNotifications(),
+        houseImage: StorageService.getHouseImage(),
+        houseHotspots: StorageService.getHouseHotspots(null),
+        exportedAt: new Date().toISOString(),
+        version: '1.0'
+      };
+      const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `baan_rattanakorn_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      downloadAnchor.setAttribute("href", jsonStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      return true;
+    } catch (err) {
+      console.error('Failed to export backup:', err);
+      return false;
+    }
+  },
+
+  importBackup: (jsonContent) => {
+    try {
+      const parsed = typeof jsonContent === 'string' ? JSON.parse(jsonContent) : jsonContent;
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('โครงสร้างไฟล์ไม่ถูกต้อง');
+      }
+      if (parsed.notes) localStorage.setItem('home_notes', JSON.stringify(parsed.notes));
+      if (parsed.stages) localStorage.setItem('home_stages', JSON.stringify(parsed.stages));
+      if (parsed.expenses) localStorage.setItem('home_expenses', JSON.stringify(parsed.expenses));
+      if (parsed.notifications) localStorage.setItem('home_notifications', JSON.stringify(parsed.notifications));
+      if (parsed.houseImage) localStorage.setItem('home_house_image', parsed.houseImage);
+      if (parsed.houseHotspots) localStorage.setItem('home_house_hotspots', JSON.stringify(parsed.houseHotspots));
+
+      StorageService.triggerAutoSync();
+      return { success: true, data: parsed };
+    } catch (err) {
+      return { success: false, error: err.message || 'ไม่สามารถนำเข้าข้อมูลได้' };
+    }
+  },
+
   // CLOUD & LOCAL SYNC (Supabase 24/7 Cloud + Local Network Fallback)
   triggerAutoSync: async () => {
     const payload = {
@@ -395,18 +538,33 @@ export const StorageService = {
       timestamp: Date.now()
     };
 
+    let cloudSuccess = false;
+    let cloudError = null;
+
     // 1. Supabase Cloud Sync (24/7 across the globe)
     if (supabase) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('home_app_sync')
           .upsert({
             id: 'rattanakorn_phase10',
             data: payload,
             updated_at: new Date().toISOString()
           });
+
+        if (error) {
+          console.warn('Supabase sync error:', error);
+          cloudError = error.message || 'บันทึกข้อมูลไปยัง Supabase ไม่สำเร็จ';
+          StorageService.setLastSyncError(cloudError);
+        } else {
+          cloudSuccess = true;
+          StorageService.setLastSyncTime(new Date().toISOString());
+          StorageService.setLastSyncError(null);
+        }
       } catch (err) {
-        console.warn('Supabase sync error:', err);
+        console.warn('Supabase sync exception:', err);
+        cloudError = err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Supabase';
+        StorageService.setLastSyncError(cloudError);
       }
     }
 
@@ -420,19 +578,28 @@ export const StorageService = {
     } catch {
       // Offline fallback: localStorage is already saved!
     }
+
+    return {
+      success: cloudSuccess || !supabase,
+      error: cloudError,
+      payload
+    };
   },
 
   pullServerSync: async () => {
     // 1. Try Supabase Cloud Sync first
     if (supabase) {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('home_app_sync')
           .select('data, updated_at')
           .eq('id', 'rattanakorn_phase10')
-          .single();
+          .maybeSingle();
 
-        if (data && data.data) {
+        if (error) {
+          console.warn('Supabase pull error:', error);
+          StorageService.setLastSyncError(error.message);
+        } else if (data && data.data) {
           const serverData = data.data;
           if (serverData.notes) localStorage.setItem('home_notes', JSON.stringify(serverData.notes));
           if (serverData.stages) localStorage.setItem('home_stages', JSON.stringify(serverData.stages));
@@ -440,10 +607,17 @@ export const StorageService = {
           if (serverData.notifications) localStorage.setItem('home_notifications', JSON.stringify(serverData.notifications));
           if (serverData.houseImage) localStorage.setItem('home_house_image', serverData.houseImage);
           if (serverData.houseHotspots) localStorage.setItem('home_house_hotspots', JSON.stringify(serverData.houseHotspots));
+          
+          StorageService.setLastSyncTime(new Date().toISOString());
+          StorageService.setLastSyncError(null);
           return serverData;
+        } else if (!data) {
+          // Record doesn't exist yet in Supabase -> push initial local data!
+          await StorageService.triggerAutoSync();
         }
       } catch (err) {
-        console.warn('Supabase pull error:', err);
+        console.warn('Supabase pull exception:', err);
+        StorageService.setLastSyncError(err.message);
       }
     }
 
@@ -491,6 +665,9 @@ export const StorageService = {
               if (serverData.notifications) localStorage.setItem('home_notifications', JSON.stringify(serverData.notifications));
               if (serverData.houseImage) localStorage.setItem('home_house_image', serverData.houseImage);
               if (serverData.houseHotspots) localStorage.setItem('home_house_hotspots', JSON.stringify(serverData.houseHotspots));
+              
+              StorageService.setLastSyncTime(new Date().toISOString());
+              StorageService.setLastSyncError(null);
               if (callback) callback(serverData);
             }
           }

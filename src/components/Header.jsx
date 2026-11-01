@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, RefreshCw, Check, ChevronRight, Monitor, Smartphone, Sun, Moon } from 'lucide-react';
+import { Bell, RefreshCw, Check, ChevronRight, Monitor, Smartphone, Sun, Moon, Cloud, CloudOff, AlertCircle } from 'lucide-react';
 
 export default function Header({ 
   currentUser, 
@@ -10,7 +10,10 @@ export default function Header({
   onToggleTheme,
   notifications,
   onNotificationClick,
-  onMarkAllRead
+  onMarkAllRead,
+  syncStatus = { isConnected: false, hasError: false },
+  isSyncing = false,
+  onOpenSyncModal
 }) {
   const isJob = currentUser === 'JOB';
   const isDark = theme === 'dark';
@@ -71,6 +74,39 @@ export default function Header({
             ) : (
               <Moon className="w-4 h-4 text-stone-600" />
             )}
+          </button>
+
+          {/* Cloud Sync Status & Settings Button */}
+          <button
+            onClick={onOpenSyncModal}
+            className={`h-8 px-2 rounded-xl border flex items-center gap-1 active:scale-95 transition-all shadow-xs ${
+              syncStatus.isConnected 
+                ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
+                : syncStatus.hasError
+                ? 'bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
+                : 'bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300'
+            }`}
+            title={
+              syncStatus.isConnected 
+                ? 'ระบบคลาวด์ซิงก์: เชื่อมต่อแล้ว (แตะเพื่อจัดการ)' 
+                : syncStatus.hasError
+                ? 'ระบบคลาวด์ซิงก์: พบข้อผิดพลาด (แตะเพื่อตรวจสอบ)'
+                : 'ระบบคลาวด์ซิงก์: โหมดในเครื่อง (แตะเพื่อเชื่อมต่อ)'
+            }
+            aria-label="ตั้งค่าระบบซิงค์"
+          >
+            {isSyncing ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400" />
+            ) : syncStatus.isConnected ? (
+              <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            ) : syncStatus.hasError ? (
+              <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            ) : (
+              <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            )}
+            <span className="text-[10px] sm:text-[11px] font-bold hidden sm:inline">
+              {isSyncing ? 'ซิงค์...' : syncStatus.isConnected ? 'คลาวด์' : 'ในเครื่อง'}
+            </span>
           </button>
 
           {/* Desktop <-> Mobile View Toggle Button (Req 1) */}

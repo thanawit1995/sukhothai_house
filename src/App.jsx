@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import InstallPwaModal from './components/InstallPwaModal';
+import SyncModal from './components/SyncModal';
 
 import NotesPage from './pages/NotesPage';
 import StatusPage from './pages/StatusPage';
@@ -54,6 +55,11 @@ export default function App() {
   // Highlighted target note if clicked from notification
   const [targetNoteId, setTargetNoteId] = useState(null);
 
+  // Sync Modal State
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+  const [syncStatus, setSyncStatus] = useState(() => StorageService.getSyncStatus());
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // App persistent data
   const [notes, setNotes] = useState(StorageService.getNotes());
   const [stages, setStages] = useState(StorageService.getStages());
@@ -77,17 +83,26 @@ export default function App() {
       if (serverData.stages) setStages(serverData.stages);
       if (serverData.expenses) setExpenses(serverData.expenses);
       if (serverData.notifications) setNotifications(serverData.notifications);
+      setSyncStatus(StorageService.getSyncStatus());
     };
 
     // 1. Initial sync
-    StorageService.pullServerSync().then(handleSyncData);
+    setIsSyncing(true);
+    StorageService.pullServerSync().then((data) => {
+      handleSyncData(data);
+      setIsSyncing(false);
+      setSyncStatus(StorageService.getSyncStatus());
+    });
 
     // 2. Realtime WebSocket subscription (Instant sync on 4G/Cloud)
     const unsubscribe = StorageService.subscribeRealtimeSync(handleSyncData);
 
     // 3. Fallback interval polling
     const interval = setInterval(() => {
-      StorageService.pullServerSync().then(handleSyncData);
+      StorageService.pullServerSync().then((data) => {
+        handleSyncData(data);
+        setSyncStatus(StorageService.getSyncStatus());
+      });
     }, 4000);
 
     return () => {
@@ -261,6 +276,9 @@ export default function App() {
         notifications={notifications}
         onNotificationClick={handleNotificationClick}
         onMarkAllRead={handleMarkAllNotificationsRead}
+        syncStatus={syncStatus}
+        isSyncing={isSyncing}
+        onOpenSyncModal={() => setIsSyncModalOpen(true)}
       />
 
       {/* ================= DESKTOP 3-COLUMN DASHBOARD (Req 1) ================= */}
@@ -423,6 +441,21 @@ export default function App() {
 
       {/* PWA Smart Install Prompt Popup (Req 3) */}
       <InstallPwaModal />
+
+      {/* Cloud Sync & Realtime Settings Modal */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        onSyncComplete={(updatedData) => {
+          setSyncStatus(StorageService.getSyncStatus());
+          if (updatedData) {
+            if (updatedData.notes) setNotes(updatedData.notes);
+            if (updatedData.stages) setStages(updatedData.stages);
+            if (updatedData.expenses) setExpenses(updatedData.expenses);
+            if (updatedData.notifications) setNotifications(updatedData.notifications);
+          }
+        }}
+      />
 
     </div>
   );
