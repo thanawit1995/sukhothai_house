@@ -111,6 +111,37 @@ const INITIAL_NOTIFICATIONS = [
 ];
 
 export const StorageService = {
+  // CUSTOM TAGS (Req 2)
+  getCustomTags: () => {
+    try {
+      const saved = localStorage.getItem('home_custom_tags');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  addCustomTag: (newTag) => {
+    if (!newTag || !newTag.trim()) return StorageService.getCustomTags();
+    const tags = StorageService.getCustomTags();
+    const cleanTag = newTag.trim();
+    if (!tags.includes(cleanTag)) {
+      const updated = [...tags, cleanTag];
+      localStorage.setItem('home_custom_tags', JSON.stringify(updated));
+      StorageService.triggerAutoSync();
+      return updated;
+    }
+    return tags;
+  },
+
+  deleteCustomTag: (tagToDelete) => {
+    const tags = StorageService.getCustomTags();
+    const updated = tags.filter(t => t !== tagToDelete);
+    localStorage.setItem('home_custom_tags', JSON.stringify(updated));
+    StorageService.triggerAutoSync();
+    return updated;
+  },
+
   // NOTES
   getNotes: () => {
     try {
@@ -542,6 +573,7 @@ export const StorageService = {
       notifications: StorageService.getNotifications(),
       houseImage: StorageService.getHouseImage(),
       houseHotspots: StorageService.getHouseHotspots(null),
+      customTags: StorageService.getCustomTags(),
       timestamp: Date.now()
     };
 
@@ -614,6 +646,7 @@ export const StorageService = {
           if (serverData.notifications) localStorage.setItem('home_notifications', JSON.stringify(serverData.notifications));
           if (serverData.houseImage) localStorage.setItem('home_house_image', serverData.houseImage);
           if (serverData.houseHotspots) localStorage.setItem('home_house_hotspots', JSON.stringify(serverData.houseHotspots));
+          if (serverData.customTags) localStorage.setItem('home_custom_tags', JSON.stringify(serverData.customTags));
           
           StorageService.setLastSyncTime(new Date().toISOString());
           StorageService.setLastSyncError(null);
@@ -672,6 +705,7 @@ export const StorageService = {
               if (serverData.notifications) localStorage.setItem('home_notifications', JSON.stringify(serverData.notifications));
               if (serverData.houseImage) localStorage.setItem('home_house_image', serverData.houseImage);
               if (serverData.houseHotspots) localStorage.setItem('home_house_hotspots', JSON.stringify(serverData.houseHotspots));
+              if (serverData.customTags) localStorage.setItem('home_custom_tags', JSON.stringify(serverData.customTags));
               
               StorageService.setLastSyncTime(new Date().toISOString());
               StorageService.setLastSyncError(null);

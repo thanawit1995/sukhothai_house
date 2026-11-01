@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Tag, Trash2, Edit3, Calendar, Image as ImageIcon, X, Paperclip, Search, SlidersHorizontal, Check } from 'lucide-react';
+import { 
+  Plus, 
+  Tag, 
+  Trash2, 
+  Edit3, 
+  Calendar, 
+  Image as ImageIcon, 
+  X, 
+  Search, 
+  SlidersHorizontal, 
+  Check,
+  Pencil,
+  RotateCcw
+} from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
+import { StorageService } from '../lib/storage';
+
+const DEFAULT_TAGS = ['ไอเดีย', 'ด่วน', 'ราคา', 'สเปก', 'งานช่าง'];
 
 export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote, currentUser, targetNoteId }) {
   const isJob = currentUser === 'JOB';
@@ -10,9 +26,28 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
   // Filters (Req 1: Only "JOB" & "Pealpeal" chips; all other filters consolidated into 1 button)
   const [selectedUser, setSelectedUser] = useState(null); // null (All) | 'JOB' | 'Pealpeal'
   const [selectedTag, setSelectedTag] = useState('ทั้งหมด');
-  const [selectedDate, setSelectedDate] = useState(''); // 'YYYY-MM-DD'
+  
+  // Date Range Filter (Req 2: ช่วงวันที่ - startDate to endDate)
+  const [startDate, setStartDate] = useState(''); // 'YYYY-MM-DD'
+  const [endDate, setEndDate] = useState('');     // 'YYYY-MM-DD'
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  // Dynamic Custom Tags (Req 2: เพิ่ม tag ได้)
+  const [customTags, setCustomTags] = useState(() => StorageService.getCustomTags());
+  const [modalNewTagInput, setModalNewTagInput] = useState('');
+  const [formNewTagInput, setFormNewTagInput] = useState('');
+  const [isAddingTagInForm, setIsAddingTagInForm] = useState(false);
+  const [isAddingTagInEdit, setIsAddingTagInEdit] = useState(false);
+  const [editNewTagInput, setEditNewTagInput] = useState('');
+
+  // Combined tags list (Default + Custom + Any used in notes)
+  const allAvailableTags = Array.from(new Set([
+    ...DEFAULT_TAGS,
+    ...customTags,
+    ...notes.map(n => n.tag).filter(Boolean)
+  ]));
 
   // Add Note Form
   const [isAddingNote, setIsAddingNote] = useState(false);
@@ -28,11 +63,69 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
   const [editTag, setEditTag] = useState('ไอเดีย');
   const [editImagePreview, setEditImagePreview] = useState(null);
 
-  // Delete Confirmation Modal State (Req 1)
+  // Delete Confirmation Modal State
   const [noteToDelete, setNoteToDelete] = useState(null);
 
-  // Fullscreen Image Lightbox State (Req 2)
+  // Fullscreen Image Lightbox & Editor State (Req 3: Crop, Draw, Eraser, Undo, Save)
+  // Structure: { src, alt, noteId?, attachmentIndex?, draftType?: 'new' | 'edit' }
   const [viewingImage, setViewingImage] = useState(null);
+
+  // Helper: Format date to Thai compact representation
+  const formatDateThai = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Helper: Date range quick presets
+  const applyDatePreset = (preset) => {
+    const today = new Date();
+    const format = (d) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    if (preset === 'today') {
+      const tStr = format(today);
+      setStartDate(tStr);
+      setEndDate(tStr);
+    } else if (preset === '7days') {
+      const past = new Date(today);
+      past.setDate(today.getDate() - 6);
+      setStartDate(format(past));
+      setEndDate(format(today));
+    } else if (preset === 'thisMonth') {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+      setStartDate(format(firstDay));
+      setEndDate(format(today));
+    } else if (preset === 'all') {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  // Tag Management
+  const handleAddCustomTag = (tagText) => {
+    if (!tagText || !tagText.trim()) return;
+    const clean = tagText.trim().replace(/^#/, '');
+    const updated = StorageService.addCustomTag(clean);
+    setCustomTags(updated);
+    return clean;
+  };
+
+  const handleDeleteCustomTag = (tagToDelete) => {
+    const updated = StorageService.deleteCustomTag(tagToDelete);
+    setCustomTags(updated);
+    if (selectedTag === tagToDelete) {
+      setSelectedTag('ทั้งหมด');
+    }
+  };
 
   // Handle device photo upload
   const handleImageUpload = (e) => {
@@ -113,20 +206,51 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
     setIsAddingNote(false);
   };
 
-  const activeFilterCount = (selectedTag !== 'ทั้งหมด' ? 1 : 0) + (selectedDate ? 1 : 0) + (searchQuery.trim() ? 1 : 0);
+  // Image Editor Save Callback (Req 3: Update image attachment or draft preview)
+  const handleSaveEditedImage = (newImageUrl) => {
+    if (!viewingImage) return;
 
-  // Filter notes (Req 1: User chips + consolidated other filters)
+    if (viewingImage.draftType === 'new') {
+      setImagePreview(newImageUrl);
+    } else if (viewingImage.draftType === 'edit') {
+      setEditImagePreview(newImageUrl);
+    } else if (viewingImage.noteId && viewingImage.attachmentIndex !== undefined && onUpdateNote) {
+      const targetNote = notes.find(n => n.id === viewingImage.noteId);
+      if (targetNote && targetNote.attachments) {
+        const updatedAttachments = targetNote.attachments.map((att, idx) => {
+          if (idx === viewingImage.attachmentIndex) {
+            return { ...att, url: newImageUrl };
+          }
+          return att;
+        });
+        onUpdateNote(viewingImage.noteId, { attachments: updatedAttachments });
+      }
+    }
+  };
+
+  const hasDateFilter = Boolean(startDate || endDate);
+  const activeFilterCount = (selectedTag !== 'ทั้งหมด' ? 1 : 0) + (hasDateFilter ? 1 : 0) + (searchQuery.trim() ? 1 : 0);
+
+  // Filter notes (Req 1 & 2: User chips + Date Range + Custom Tag + Search)
   const filteredNotes = notes.filter(n => {
-    // User filter (Req 1: Only "JOB" & "Pealpeal" chips)
+    // 1. User filter (Strictly "JOB" & "Pealpeal" chips)
     if (selectedUser && n.createdBy !== selectedUser) return false;
-    // Tag filter
+    
+    // 2. Tag filter
     if (selectedTag !== 'ทั้งหมด' && n.tag !== selectedTag) return false;
-    // Date filter
-    if (selectedDate && n.date !== selectedDate && n.createdAt?.split('T')[0] !== selectedDate) return false;
-    // Search query
+    
+    // 3. Date range filter
+    const noteDate = n.date || n.createdAt?.split('T')[0] || '';
+    if (startDate && noteDate && noteDate < startDate) return false;
+    if (endDate && noteDate && noteDate > endDate) return false;
+    
+    // 4. Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      return (n.title || '').toLowerCase().includes(q) || (n.content || '').toLowerCase().includes(q);
+      const matchTitle = (n.title || '').toLowerCase().includes(q);
+      const matchContent = (n.content || '').toLowerCase().includes(q);
+      const matchTag = (n.tag || '').toLowerCase().includes(q);
+      return matchTitle || matchContent || matchTag;
     }
     return true;
   });
@@ -181,7 +305,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                   ? 'bg-amber-500 border-amber-500 text-stone-950 shadow-amber-200 dark:shadow-none'
                   : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800'
               }`}
-              title="ค้นหา, กรองตามหมวดหมู่ หรือเลือกวันที่"
+              title="ค้นหา, ช่วงวันที่ หรือเลือกแท็ก"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>ตัวกรอง</span>
@@ -232,10 +356,14 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 </button>
               </span>
             )}
-            {selectedDate && (
+            {hasDateFilter && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-medium border border-amber-200 dark:border-amber-900">
-                📅 {new Date(selectedDate).toLocaleDateString('th-TH', { dateStyle: 'medium' })}
-                <button onClick={() => setSelectedDate('')} className="hover:text-rose-500 ml-0.5">
+                📅 {startDate ? formatDateThai(startDate) : 'เริ่มต้น'} - {endDate ? formatDateThai(endDate) : 'ปัจจุบัน'}
+                <button 
+                  onClick={() => { setStartDate(''); setEndDate(''); }} 
+                  className="hover:text-rose-500 ml-0.5"
+                  title="ล้างช่วงวันที่"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -244,7 +372,8 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               onClick={() => {
                 setSelectedUser(null);
                 setSelectedTag('ทั้งหมด');
-                setSelectedDate('');
+                setStartDate('');
+                setEndDate('');
                 setSearchQuery('');
               }}
               className="text-[10px] text-stone-400 hover:text-stone-700 dark:hover:text-stone-300 underline font-medium ml-1"
@@ -262,16 +391,93 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             <span className="text-xs font-bold text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
               <span>✍️</span> เขียนโน้ตในชื่อ {currentUser}
             </span>
-            <select 
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              className="text-[11px] bg-amber-50 dark:bg-stone-800 text-amber-800 dark:text-amber-300 px-2.5 py-1 rounded-xl border border-amber-200 dark:border-stone-700 font-medium"
-            >
-              <option value="ไอเดีย">🟢 ไอเดีย</option>
-              <option value="ด่วน">🔴 ด่วนต้องสรุป</option>
-              <option value="ราคา">🟡 เช็คราคา</option>
-              <option value="สเปก">🔵 สเปกช่าง</option>
-            </select>
+          </div>
+
+          {/* Tag Selector with "+ เพิ่มแท็กใหม่" (Req 2) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 flex items-center gap-1">
+                <Tag className="w-3 h-3 text-amber-500" />
+                <span>เลือกหมวดหมู่ / แท็ก</span>
+              </label>
+              {!isAddingTagInForm && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddingTagInForm(true)}
+                  className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold hover:underline flex items-center gap-0.5"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>เพิ่มแท็กใหม่</span>
+                </button>
+              )}
+            </div>
+
+            {/* Quick Tag Pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {allAvailableTags.map(t => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTag(t)}
+                  className={`text-xs px-2.5 py-1 rounded-xl transition-all font-medium border ${
+                    tag === t
+                      ? 'bg-amber-400 border-amber-400 text-stone-950 font-bold shadow-xs'
+                      : 'bg-stone-100 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            {/* Inline Add Custom Tag Form */}
+            {isAddingTagInForm && (
+              <div className="flex items-center gap-1.5 pt-1 animate-fade-in">
+                <input
+                  type="text"
+                  placeholder="พิมพ์ชื่อแท็กใหม่..."
+                  value={formNewTagInput}
+                  onChange={(e) => setFormNewTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (formNewTagInput.trim()) {
+                        const newTag = handleAddCustomTag(formNewTagInput);
+                        if (newTag) setTag(newTag);
+                        setFormNewTagInput('');
+                        setIsAddingTagInForm(false);
+                      }
+                    }
+                  }}
+                  className="flex-1 text-xs px-3 py-1.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (formNewTagInput.trim()) {
+                      const newTag = handleAddCustomTag(formNewTagInput);
+                      if (newTag) setTag(newTag);
+                      setFormNewTagInput('');
+                    }
+                    setIsAddingTagInForm(false);
+                  }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-stone-950 shadow-xs"
+                >
+                  เพิ่ม
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormNewTagInput('');
+                    setIsAddingTagInForm(false);
+                  }}
+                  className="p-1.5 rounded-xl text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
 
           <input
@@ -290,7 +496,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             className="w-full text-xs p-3 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
 
-          {/* Device Photo Upload */}
+          {/* Device Photo Upload & Live Editor Trigger (Req 3) */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-stone-50 dark:bg-stone-800 border border-dashed border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 text-xs cursor-pointer hover:bg-stone-100 dark:hover:bg-stone-750 transition-colors">
               <ImageIcon className="w-4 h-4 text-amber-600" />
@@ -304,12 +510,35 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
             </label>
 
             {imagePreview && (
-              <div className="relative w-full max-h-40 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900">
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-contain" />
+              <div className="relative w-full max-h-40 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900 group">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="w-full h-full object-contain cursor-pointer"
+                  onClick={() => setViewingImage({
+                    src: imagePreview,
+                    alt: 'รูปโน้ตใหม่',
+                    draftType: 'new'
+                  })}
+                />
+                
+                {/* Click to Edit Hint Badge */}
+                <div 
+                  onClick={() => setViewingImage({
+                    src: imagePreview,
+                    alt: 'รูปโน้ตใหม่',
+                    draftType: 'new'
+                  })}
+                  className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-medium flex items-center gap-1 cursor-pointer hover:bg-black/90 active:scale-95 transition-all shadow-md"
+                >
+                  <Pencil className="w-2.5 h-2.5 text-amber-400" />
+                  <span>แตะเพื่อครอป / วาดเขียน</span>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setImagePreview(null)}
-                  className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black"
+                  className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black active:scale-95"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -360,7 +589,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
                       noteIsJob 
                         ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800' 
@@ -369,7 +598,7 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                       {noteIsJob ? '👔 JOB' : '🌸 Pealpeal'}
                     </span>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 font-medium">
-                      {note.tag || 'ทั่วไป'}
+                      🏷️ {note.tag || 'ทั่วไป'}
                     </span>
                   </div>
 
@@ -407,19 +636,27 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                   </p>
                 </div>
 
-                {/* Image Attachments (Click to view fullscreen & save - Req 2) */}
+                {/* Image Attachments (Click to view fullscreen & edit - Req 3) */}
                 {note.attachments && note.attachments.length > 0 && (
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     {note.attachments.map((att, i) => (
                       <div 
                         key={i} 
-                        onClick={() => setViewingImage({ src: att.url, alt: att.label || note.title })}
+                        onClick={() => setViewingImage({ 
+                          src: att.url, 
+                          alt: att.label || note.title,
+                          noteId: note.id,
+                          attachmentIndex: i
+                        })}
                         className="rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-800 max-h-36 cursor-pointer shadow-xs active:scale-98 transition-transform group relative"
-                        title="แตะเพื่อดูรูปขนาดเต็ม / บันทึกลงเครื่อง"
+                        title="แตะเพื่อดูรูปขนาดเต็ม / ครอป / วาด / บันทึก"
                       >
                         <img src={att.url} alt={att.label} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-[10px] bg-black/60 text-white px-2 py-0.5 rounded-full">ดูภาพเต็ม</span>
+                        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white">
+                          <span className="text-[10px] bg-black/60 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+                            <Pencil className="w-2.5 h-2.5 text-amber-400" />
+                            <span>ดู / แก้ไขรูป</span>
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -442,10 +679,24 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               </button>
             </div>
 
+            {/* Edit Tag Selector with "+ แท็กใหม่" */}
             <div>
-              <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block mb-1">หมวดหมู่</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block">หมวดหมู่ / แท็ก</label>
+                {!isAddingTagInEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingTagInEdit(true)}
+                    className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold hover:underline flex items-center gap-0.5"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>เพิ่มแท็กใหม่</span>
+                  </button>
+                )}
+              </div>
+
               <div className="flex gap-1.5 flex-wrap">
-                {['ไอเดีย', 'สเปก', 'งานช่าง', 'คำถาม', 'ทั่วไป'].map(t => (
+                {allAvailableTags.map(t => (
                   <button
                     key={t}
                     type="button"
@@ -460,6 +711,55 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                   </button>
                 ))}
               </div>
+
+              {/* Inline Add Tag in Edit Mode */}
+              {isAddingTagInEdit && (
+                <div className="flex items-center gap-1.5 pt-2 animate-fade-in">
+                  <input
+                    type="text"
+                    placeholder="พิมพ์ชื่อแท็กใหม่..."
+                    value={editNewTagInput}
+                    onChange={(e) => setEditNewTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (editNewTagInput.trim()) {
+                          const newTag = handleAddCustomTag(editNewTagInput);
+                          if (newTag) setEditTag(newTag);
+                          setEditNewTagInput('');
+                          setIsAddingTagInEdit(false);
+                        }
+                      }
+                    }}
+                    className="flex-1 text-xs px-3 py-1.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editNewTagInput.trim()) {
+                        const newTag = handleAddCustomTag(editNewTagInput);
+                        if (newTag) setEditTag(newTag);
+                        setEditNewTagInput('');
+                      }
+                      setIsAddingTagInEdit(false);
+                    }}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-stone-950 shadow-xs"
+                  >
+                    เพิ่ม
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditNewTagInput('');
+                      setIsAddingTagInEdit(false);
+                    }}
+                    className="p-1.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -485,16 +785,39 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               />
             </div>
 
-            {/* Photo Attachment */}
+            {/* Photo Attachment & Live Editor Trigger (Req 3) */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-stone-500 dark:text-stone-400 block">รูปภาพประกอบ</label>
               {editImagePreview ? (
-                <div className="relative w-full max-h-36 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900">
-                  <img src={editImagePreview} alt="Preview" className="w-full h-full object-contain" />
+                <div className="relative w-full max-h-36 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-900 group">
+                  <img 
+                    src={editImagePreview} 
+                    alt="Preview" 
+                    className="w-full h-full object-contain cursor-pointer"
+                    onClick={() => setViewingImage({
+                      src: editImagePreview,
+                      alt: 'รูปโน้ตที่กำลังแก้ไข',
+                      draftType: 'edit'
+                    })}
+                  />
+                  
+                  {/* Click to Edit Hint Badge */}
+                  <div 
+                    onClick={() => setViewingImage({
+                      src: editImagePreview,
+                      alt: 'รูปโน้ตที่กำลังแก้ไข',
+                      draftType: 'edit'
+                    })}
+                    className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-xs text-white text-[10px] font-medium flex items-center gap-1 cursor-pointer hover:bg-black/90 active:scale-95 transition-all shadow-md"
+                  >
+                    <Pencil className="w-2.5 h-2.5 text-amber-400" />
+                    <span>แตะเพื่อครอป / วาดเขียน</span>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setEditImagePreview(null)}
-                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white hover:bg-black active:scale-95"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -535,14 +858,14 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
         document.body
       )}
 
-      {/* Consolidated Filter Modal / Drawer ("ปุ่มเดียว" - Req 1) */}
+      {/* Consolidated Filter Modal / Drawer ("ปุ่มเดียว" - Req 1 & Req 2) */}
       {isFilterModalOpen && createPortal(
         <div 
           className="fixed inset-0 z-[99998] flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
           onClick={() => setIsFilterModalOpen(false)}
         >
           <div 
-            className="w-full max-w-sm bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-4 animate-slide-up"
+            className="w-full max-w-sm max-h-[85vh] overflow-y-auto bg-white dark:bg-stone-900 rounded-3xl p-5 shadow-2xl border border-stone-200 dark:border-stone-800 space-y-4 animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -588,52 +911,180 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
               </div>
             </div>
 
-            {/* 2. Tag Filters */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-amber-500" />
-                <span>หมวดหมู่ / แท็ก</span>
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {['ทั้งหมด', 'ด่วน', 'ไอเดีย', 'ราคา', 'สเปก'].map(t => (
+            {/* 2. Tag Filters with Add Custom Tag (Req 2) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5 text-amber-500" />
+                  <span>หมวดหมู่ / แท็ก</span>
+                </label>
+                {selectedTag !== 'ทั้งหมด' && (
                   <button
-                    key={t}
-                    type="button"
-                    onClick={() => setSelectedTag(t)}
-                    className={`text-xs px-3 py-1.5 rounded-xl transition-all font-medium border ${
-                      selectedTag === t
-                        ? 'bg-amber-500 border-amber-500 text-stone-950 font-bold shadow-xs'
-                        : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300'
-                    }`}
+                    onClick={() => setSelectedTag('ทั้งหมด')}
+                    className="text-[10px] text-stone-400 hover:text-stone-600 underline"
                   >
-                    {t}
+                    ดูทั้งหมด
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Tag Selection Pills */}
+              <div className="flex flex-wrap gap-1.5">
+                {/* 'ทั้งหมด' Option */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTag('ทั้งหมด')}
+                  className={`text-xs px-3 py-1.5 rounded-xl transition-all font-medium border ${
+                    selectedTag === 'ทั้งหมด'
+                      ? 'bg-amber-500 border-amber-500 text-stone-950 font-bold shadow-xs'
+                      : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  ทั้งหมด
+                </button>
+
+                {allAvailableTags.map(t => {
+                  const isCustom = customTags.includes(t);
+                  return (
+                    <div key={t} className="inline-flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTag(t)}
+                        className={`text-xs px-3 py-1.5 rounded-xl transition-all font-medium border ${
+                          selectedTag === t
+                            ? 'bg-amber-500 border-amber-500 text-stone-950 font-bold shadow-xs'
+                            : 'bg-stone-50 dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                      {/* Optional subtle delete for custom tag if desired */}
+                      {isCustom && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCustomTag(t);
+                          }}
+                          className="ml-0.5 p-1 text-stone-300 hover:text-rose-500 text-[10px]"
+                          title={`ลบแท็ก "${t}"`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add Custom Tag Input in Filter Modal (Req 2) */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <input
+                  type="text"
+                  placeholder="+ เพิ่มแท็กใหม่ (เช่น วัสดุ, สวน)..."
+                  value={modalNewTagInput}
+                  onChange={(e) => setModalNewTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (modalNewTagInput.trim()) {
+                        const newTag = handleAddCustomTag(modalNewTagInput);
+                        if (newTag) setSelectedTag(newTag);
+                        setModalNewTagInput('');
+                      }
+                    }
+                  }}
+                  className="flex-1 text-xs px-3 py-1.5 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (modalNewTagInput.trim()) {
+                      const newTag = handleAddCustomTag(modalNewTagInput);
+                      if (newTag) setSelectedTag(newTag);
+                      setModalNewTagInput('');
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-100 dark:bg-stone-800 hover:bg-amber-400 hover:text-stone-950 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700 transition-colors"
+                >
+                  เพิ่ม
+                </button>
               </div>
             </div>
 
-            {/* 3. Date Filter */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                <span>กรองตามวันที่</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="flex-1 text-xs px-3 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 font-medium"
-                />
-                {selectedDate && (
+            {/* 3. Date Range Filter with Quick Presets (Req 2: เลือกวันที่เป็นช่วงได้) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                  <span>กรองตามช่วงวันที่</span>
+                </label>
+                {hasDateFilter && (
                   <button
-                    onClick={() => setSelectedDate('')}
-                    className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-500 hover:text-stone-700"
-                    title="ล้างวันที่"
+                    onClick={() => applyDatePreset('all')}
+                    className="text-[10px] text-stone-400 hover:text-stone-600 underline"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    ล้างวันที่
                   </button>
                 )}
+              </div>
+
+              {/* Quick Presets: วันนี้ / 7 วันล่าสุด / เดือนนี้ / ทั้งหมด */}
+              <div className="grid grid-cols-4 gap-1">
+                <button
+                  type="button"
+                  onClick={() => applyDatePreset('today')}
+                  className="py-1 px-1.5 rounded-lg text-[11px] font-medium bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-center transition-colors"
+                >
+                  วันนี้
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyDatePreset('7days')}
+                  className="py-1 px-1.5 rounded-lg text-[11px] font-medium bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-center transition-colors"
+                >
+                  7 วันล่าสุด
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyDatePreset('thisMonth')}
+                  className="py-1 px-1.5 rounded-lg text-[11px] font-medium bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 text-center transition-colors"
+                >
+                  เดือนนี้
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyDatePreset('all')}
+                  className="py-1 px-1.5 rounded-lg text-[11px] font-medium bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-500 dark:text-stone-400 text-center transition-colors"
+                >
+                  ทั้งหมด
+                </button>
+              </div>
+
+              {/* Start Date & End Date Pickers */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-medium text-stone-500 dark:text-stone-400 block">
+                    จากวันที่
+                  </span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full text-xs px-2.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 font-medium"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] font-medium text-stone-500 dark:text-stone-400 block">
+                    ถึงวันที่
+                  </span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full text-xs px-2.5 py-2 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 font-medium"
+                  />
+                </div>
               </div>
             </div>
 
@@ -643,17 +1094,19 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
                 type="button"
                 onClick={() => {
                   setSelectedTag('ทั้งหมด');
-                  setSelectedDate('');
+                  setStartDate('');
+                  setEndDate('');
                   setSearchQuery('');
                 }}
-                className="px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-bold active:scale-95 transition-all"
+                className="px-3.5 py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-xs font-bold active:scale-95 transition-all flex items-center gap-1"
               >
-                ล้างตัวกรอง
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>รีเซ็ต</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsFilterModalOpen(false)}
-                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold active:scale-95 transition-all shadow-md"
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-bold active:scale-95 transition-all shadow-md text-center"
               >
                 ดูโน้ต ({filteredNotes.length} รายการ)
               </button>
@@ -677,12 +1130,13 @@ export default function NotesPage({ notes, onAddNote, onUpdateNote, onDeleteNote
         onCancel={() => setNoteToDelete(null)}
       />
 
-      {/* Fullscreen Image Lightbox Modal with Download (Req 2) */}
+      {/* Fullscreen Image Lightbox & Editor Modal (Req 3: Pinch Zoom, Crop, Draw, Eraser, Undo, Save) */}
       <ImageViewerModal
         isOpen={!!viewingImage}
         src={viewingImage?.src}
         alt={viewingImage?.alt}
         onClose={() => setViewingImage(null)}
+        onSave={handleSaveEditedImage}
       />
 
     </div>

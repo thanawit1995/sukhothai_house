@@ -79,7 +79,7 @@ export default function Header({
           {/* Cloud Sync Status & Settings Button */}
           <button
             onClick={onOpenSyncModal}
-            className={`h-8 px-2 rounded-xl border flex items-center gap-1 active:scale-95 transition-all shadow-xs ${
+            className={`h-8 w-8 sm:w-auto px-0 sm:px-2 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all shadow-xs shrink-0 ${
               syncStatus.isConnected 
                 ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
                 : syncStatus.hasError
@@ -109,21 +109,21 @@ export default function Header({
             </span>
           </button>
 
-          {/* Desktop <-> Mobile View Toggle Button (Req 1) */}
+          {/* Desktop <-> Mobile View Toggle Button (Only on Tablet/Desktop) */}
           <button
             onClick={onToggleViewMode}
-            className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-50 dark:bg-stone-800 hover:bg-amber-100/80 dark:hover:bg-stone-700 text-amber-900 dark:text-amber-400 border border-amber-200/80 dark:border-stone-700 flex items-center gap-1 active:scale-95 transition-all shadow-xs"
+            className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-50 dark:bg-stone-800 hover:bg-amber-100/80 dark:hover:bg-stone-700 text-amber-900 dark:text-amber-400 border border-amber-200/80 dark:border-stone-700 hidden md:flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"
             title={viewMode === 'desktop' ? 'สลับกลับเป็นมุมมองมือถือ' : 'สลับเป็นมุมมองจอคอมพิวเตอร์ (3 คอลัมน์)'}
           >
             {viewMode === 'desktop' ? (
               <>
                 <Smartphone className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold hidden md:inline">มือถือ</span>
+                <span className="text-[10px] sm:text-[11px] font-bold">มือถือ</span>
               </>
             ) : (
               <>
                 <Monitor className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold hidden md:inline">จอคอม</span>
+                <span className="text-[10px] sm:text-[11px] font-bold">จอคอม</span>
               </>
             )}
           </button>
@@ -131,7 +131,7 @@ export default function Header({
           {/* Profile Switcher: JOB <-> Pealpeal */}
           <button
             onClick={onSwitchUser}
-            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs ${
+            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs shrink-0 ${
               isJob 
                 ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 text-sky-800 dark:text-sky-300' 
                 : 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
@@ -143,8 +143,8 @@ export default function Header({
             <RefreshCw className="w-2.5 h-2.5 opacity-60 ml-0.5" />
           </button>
 
-          {/* Notification Bell with Badge (Req 1 & 2) */}
-          <div className="relative" ref={notiRef}>
+          {/* Notification Bell with Badge */}
+          <div className="relative shrink-0" ref={notiRef}>
             <button
               onClick={() => setShowNotiDropdown(!showNotiDropdown)}
               className="relative w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 flex items-center justify-center text-stone-600 dark:text-stone-300 active:scale-95 transition-all shadow-xs"
