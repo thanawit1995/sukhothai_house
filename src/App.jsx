@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
+import InstallPwaModal from './components/InstallPwaModal';
 
 import NotesPage from './pages/NotesPage';
 import StatusPage from './pages/StatusPage';
@@ -16,6 +17,24 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(() => {
     return localStorage.getItem('home_current_user') || 'JOB';
   });
+
+  // Day vs Night Mode (Req 2)
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('home_theme') || 'light';
+  });
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('home_theme', theme);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   // Desktop vs Mobile View Mode (Req 1)
   const [viewMode, setViewMode] = useState(() => {
@@ -229,14 +248,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/70 text-stone-800 flex flex-col font-sans antialiased selection:bg-amber-200 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50/70 dark:bg-stone-950 text-stone-800 dark:text-stone-100 flex flex-col font-sans antialiased selection:bg-amber-200 overflow-x-hidden transition-colors duration-200">
       
-      {/* Sticky Mobile/Desktop Header with Notification Bell, Profile Switcher & Mode Toggle */}
+      {/* Sticky Mobile/Desktop Header with Notification Bell, Profile Switcher, Day/Night & Mode Toggle */}
       <Header
         currentUser={currentUser}
         onSwitchUser={handleSwitchUser}
         viewMode={viewMode}
         onToggleViewMode={handleToggleViewMode}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
         notifications={notifications}
         onNotificationClick={handleNotificationClick}
         onMarkAllRead={handleMarkAllNotificationsRead}
@@ -248,12 +269,12 @@ export default function App() {
           <div className="grid grid-cols-12 gap-5 items-start">
             
             {/* Column 1: โน้ต & ไอเดียล่าสุด */}
-            <section className="col-span-12 lg:col-span-4 bg-white/70 backdrop-blur-sm rounded-3xl border border-stone-200/90 shadow-xs p-3">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100 px-2">
-                <span className="text-xs font-black text-stone-800 flex items-center gap-1.5">
+            <section className="col-span-12 lg:col-span-4 bg-white/70 dark:bg-stone-900/80 backdrop-blur-sm rounded-3xl border border-stone-200/90 dark:border-stone-800 shadow-xs p-3">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100 dark:border-stone-800 px-2">
+                <span className="text-xs font-black text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
                   <span>📝</span> บันทึก & ไอเดีย ({notes.length})
                 </span>
-                <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold px-2 py-0.5 rounded-full">
                   คอลัมน์ที่ 1
                 </span>
               </div>
@@ -268,12 +289,12 @@ export default function App() {
             </section>
 
             {/* Column 2: ความคืบหน้า & ไทม์ไลน์ก่อสร้าง */}
-            <section className="col-span-12 lg:col-span-4 bg-white/70 backdrop-blur-sm rounded-3xl border border-stone-200/90 shadow-xs p-3">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100 px-2">
-                <span className="text-xs font-black text-stone-800 flex items-center gap-1.5">
+            <section className="col-span-12 lg:col-span-4 bg-white/70 dark:bg-stone-900/80 backdrop-blur-sm rounded-3xl border border-stone-200/90 dark:border-stone-800 shadow-xs p-3">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-stone-100 dark:border-stone-800 px-2">
+                <span className="text-xs font-black text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
                   <span>🏗️</span> ความคืบหน้างาน ({stages.filter(s => s.status === 'done').length}/{stages.length})
                 </span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full">
                   คอลัมน์ที่ 2
                 </span>
               </div>
@@ -285,13 +306,13 @@ export default function App() {
             </section>
 
             {/* Column 3: คุมงบการเงิน & ผังบ้าน 3D (สลับดูได้สะดวก) */}
-            <section className="col-span-12 lg:col-span-4 bg-white/70 backdrop-blur-sm rounded-3xl border border-stone-200/90 shadow-xs p-3 space-y-3">
+            <section className="col-span-12 lg:col-span-4 bg-white/70 dark:bg-stone-900/80 backdrop-blur-sm rounded-3xl border border-stone-200/90 dark:border-stone-800 shadow-xs p-3 space-y-3">
               {/* Column 3 Tab Switcher */}
-              <div className="flex p-1 bg-stone-100 rounded-2xl text-xs font-bold text-stone-600">
+              <div className="flex p-1 bg-stone-100 dark:bg-stone-800 rounded-2xl text-xs font-bold text-stone-600 dark:text-stone-400">
                 <button
                   onClick={() => setDesktopCol3Tab('finance')}
                   className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1 ${
-                    desktopCol3Tab === 'finance' ? 'bg-white text-stone-900 shadow-xs font-black' : 'hover:text-stone-900'
+                    desktopCol3Tab === 'finance' ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black' : 'hover:text-stone-900 dark:hover:text-stone-200'
                   }`}
                 >
                   <span>💰</span> การเงิน & คุมงบ
@@ -299,7 +320,7 @@ export default function App() {
                 <button
                   onClick={() => setDesktopCol3Tab('house')}
                   className={`flex-1 py-1.5 rounded-xl transition-all flex items-center justify-center gap-1 ${
-                    desktopCol3Tab === 'house' ? 'bg-white text-stone-900 shadow-xs font-black' : 'hover:text-stone-900'
+                    desktopCol3Tab === 'house' ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-xs font-black' : 'hover:text-stone-900 dark:hover:text-stone-200'
                   }`}
                 >
                   <span>🏠</span> ผังบ้าน 3D & สเปก
@@ -399,6 +420,9 @@ export default function App() {
           />
         </>
       )}
+
+      {/* PWA Smart Install Prompt Popup (Req 3) */}
+      <InstallPwaModal />
 
     </div>
   );
