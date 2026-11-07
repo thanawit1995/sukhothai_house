@@ -42,116 +42,122 @@ export default function Header({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-amber-100 dark:border-stone-800 shadow-xs transition-colors">
-      <div className={`mx-auto px-3 sm:px-4 pt-[max(env(safe-area-inset-top),10px)] pb-2 flex items-center justify-between gap-1.5 transition-all duration-300 ${
+      <div className={`mx-auto px-3 sm:px-4 pt-[max(env(safe-area-inset-top),10px)] pb-2 transition-all duration-300 ${
         viewMode === 'desktop' ? 'max-w-7xl px-6' : 'max-w-md'
       }`}>
         
-        {/* Project Branding (Never wraps title) */}
-        <div className="flex items-center gap-2 shrink-0 min-w-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg sm:text-xl shadow-xs border border-amber-200 dark:border-amber-800 shrink-0">
-            🏡
+        {/* Row 1: Logo & Controls */}
+        <div className="flex items-center justify-between gap-1.5 w-full">
+          {/* Project Branding (Never wraps title) */}
+          <div className="flex items-center gap-2 shrink-0 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg sm:text-xl shadow-xs border border-amber-200 dark:border-amber-800 shrink-0">
+              🏡
+            </div>
+            <div className="truncate">
+              <h1 className="text-xs sm:text-sm font-black tracking-tight text-stone-900 dark:text-stone-100 whitespace-nowrap">
+                OUR home
+              </h1>
+              <p className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 whitespace-nowrap leading-none mt-0.5">
+                ต.บ้านกล้วย อ.เมืองสุโขทัย
+              </p>
+            </div>
           </div>
-          <div className="truncate">
-            <h1 className="text-xs sm:text-sm font-black tracking-tight text-stone-900 dark:text-stone-100 whitespace-nowrap">
-              OUR home
-            </h1>
-            <p className="text-[9px] sm:text-[10px] text-stone-400 dark:text-stone-500 whitespace-nowrap leading-none mt-0.5">
-              ต.บ้านกล้วย อ.เมืองสุโขทัย
-            </p>
-          </div>
-        </div>
 
-        {/* Action Controls Toolbar */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          
-          {/* Day / Night Mode Toggle Button (Req 2) */}
-          <button
-            onClick={onToggleTheme}
-            className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 flex items-center justify-center text-stone-700 dark:text-amber-400 active:scale-95 transition-all shadow-xs"
-            title={isDark ? 'สลับเป็นโหมดกลางวัน (สว่าง)' : 'สลับเป็นโหมดกลางคืน (ถนอมสายตา)'}
-            aria-label="สลับโหมดกลางวัน/กลางคืน"
-          >
-            {isDark ? (
-              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
-            ) : (
-              <Moon className="w-4 h-4 text-stone-600" />
-            )}
-          </button>
-
-          {/* Cloud Sync Status & Settings Button */}
-          <button
-            onClick={onOpenSyncModal}
-            className={`h-8 w-8 sm:w-auto px-0 sm:px-2 rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all shadow-xs shrink-0 ${
-              syncStatus.isConnected 
-                ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
-                : syncStatus.hasError
-                ? 'bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
-                : 'bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300'
-            }`}
-            title={
-              syncStatus.isConnected 
-                ? 'ระบบคลาวด์ซิงก์: เชื่อมต่อแล้ว (แตะเพื่อจัดการ)' 
-                : syncStatus.hasError
-                ? 'ระบบคลาวด์ซิงก์: พบข้อผิดพลาด (แตะเพื่อตรวจสอบ)'
-                : 'ระบบคลาวด์ซิงก์: โหมดในเครื่อง (แตะเพื่อเชื่อมต่อ)'
-            }
-            aria-label="ตั้งค่าระบบซิงค์"
-          >
-            {isSyncing ? (
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400" />
-            ) : syncStatus.isConnected ? (
-              <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            ) : syncStatus.hasError ? (
-              <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-            ) : (
-              <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            )}
-            <span className="text-[10px] sm:text-[11px] font-bold hidden sm:inline">
-              {isSyncing ? 'ซิงค์...' : syncStatus.isConnected ? 'คลาวด์' : 'ในเครื่อง'}
-            </span>
-          </button>
-
-          {/* OneDrive Home Button (Direct App Switch) */}
-          <OneDriveButton variant="header" />
-
-          {/* Canva Design Button (Direct App Switch) */}
-          <CanvaButton variant="header" />
-
-          {/* Desktop <-> Mobile View Toggle Button (Only on Tablet/Desktop) */}
-          <button
-            onClick={onToggleViewMode}
-            className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-50 dark:bg-stone-800 hover:bg-amber-100/80 dark:hover:bg-stone-700 text-amber-900 dark:text-amber-400 border border-amber-200/80 dark:border-stone-700 hidden md:flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"
-            title={viewMode === 'desktop' ? 'สลับกลับเป็นมุมมองมือถือ' : 'สลับเป็นมุมมองจอคอมพิวเตอร์ (3 คอลัมน์)'}
-          >
-            {viewMode === 'desktop' ? (
+          {/* Action Controls Toolbar */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            
+            {/* Desktop Mode only: show OneDrive and Canva in Row 1 */}
+            {viewMode === 'desktop' && (
               <>
-                <Smartphone className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold">มือถือ</span>
-              </>
-            ) : (
-              <>
-                <Monitor className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
-                <span className="text-[10px] sm:text-[11px] font-bold">จอคอม</span>
+                <OneDriveButton variant="header" />
+                <CanvaButton variant="header" />
               </>
             )}
-          </button>
 
-          {/* Profile Switcher: JOB <-> Pealpeal */}
-          <button
-            onClick={onSwitchUser}
-            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs shrink-0 ${
-              isJob 
-                ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 text-sky-800 dark:text-sky-300' 
-                : 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
-            }`}
-            title="แตะเพื่อสลับผู้ใช้งาน (JOB <-> Pealpeal)"
-          >
-            <span className="text-xs">{isJob ? '👔' : '🌸'}</span>
-            <span className="text-[11px] font-black">{currentUser}</span>
-            <RefreshCw className="w-2.5 h-2.5 opacity-60 ml-0.5" />
-          </button>
+            {/* Day / Night Mode Toggle Button (Req 2) */}
+            <button
+              onClick={onToggleTheme}
+              className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 flex items-center justify-center text-stone-700 dark:text-amber-400 active:scale-95 transition-all shadow-xs"
+              title={isDark ? 'สลับเป็นโหมดกลางวัน (สว่าง)' : 'สลับเป็นโหมดกลางคืน (ถนอมสายตา)'}
+              aria-label="สลับโหมดกลางวัน/กลางคืน"
+            >
+              {isDark ? (
+                <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
+              ) : (
+                <Moon className="w-4 h-4 text-stone-600" />
+              )}
+            </button>
 
-          {/* Notification Bell with Badge */}
+            {/* Cloud Sync Status & Settings Button */}
+            <button
+              onClick={onOpenSyncModal}
+              className={`h-8 ${viewMode === 'desktop' ? 'w-auto px-2' : 'w-8 px-0'} rounded-xl border flex items-center justify-center gap-1 active:scale-95 transition-all shadow-xs shrink-0 ${
+                syncStatus.isConnected 
+                  ? 'bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
+                  : syncStatus.hasError
+                  ? 'bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
+                  : 'bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300'
+              }`}
+              title={
+                syncStatus.isConnected 
+                  ? 'ระบบคลาวด์ซิงก์: เชื่อมต่อแล้ว (แตะเพื่อจัดการ)' 
+                  : syncStatus.hasError
+                  ? 'ระบบคลาวด์ซิงก์: พบข้อผิดพลาด (แตะเพื่อตรวจสอบ)'
+                  : 'ระบบคลาวด์ซิงก์: โหมดในเครื่อง (แตะเพื่อเชื่อมต่อ)'
+              }
+              aria-label="ตั้งค่าระบบซิงค์"
+            >
+              {isSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600 dark:text-sky-400" />
+              ) : syncStatus.isConnected ? (
+                <Cloud className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              ) : syncStatus.hasError ? (
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+              ) : (
+                <CloudOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              )}
+              {viewMode === 'desktop' && (
+                <span className="text-[10px] sm:text-[11px] font-bold">
+                  {isSyncing ? 'ซิงค์...' : syncStatus.isConnected ? 'คลาวด์' : 'ในเครื่อง'}
+                </span>
+              )}
+            </button>
+
+            {/* Desktop <-> Mobile View Toggle Button (Only on Tablet/Desktop) */}
+            <button
+              onClick={onToggleViewMode}
+              className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-50 dark:bg-stone-800 hover:bg-amber-100/80 dark:hover:bg-stone-700 text-amber-900 dark:text-amber-400 border border-amber-200/80 dark:border-stone-700 hidden md:flex items-center gap-1 active:scale-95 transition-all shadow-xs shrink-0"
+              title={viewMode === 'desktop' ? 'สลับกลับเป็นมุมมองมือถือ' : 'สลับเป็นมุมมองจอคอมพิวเตอร์ (3 คอลัมน์)'}
+            >
+              {viewMode === 'desktop' ? (
+                <>
+                  <Smartphone className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-bold">มือถือ</span>
+                </>
+              ) : (
+                <>
+                  <Monitor className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                  <span className="text-[10px] sm:text-[11px] font-bold">จอคอม</span>
+                </>
+              )}
+            </button>
+
+            {/* Profile Switcher: JOB <-> Pealpeal */}
+            <button
+              onClick={onSwitchUser}
+              className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 transition-all duration-200 active:scale-95 shadow-xs shrink-0 ${
+                isJob 
+                  ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 text-sky-800 dark:text-sky-300' 
+                  : 'bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-300'
+              }`}
+              title="แตะเพื่อสลับผู้ใช้งาน (JOB <-> Pealpeal)"
+            >
+              <span className="text-xs">{isJob ? '👔' : '🌸'}</span>
+              <span className="text-[11px] font-black">{currentUser}</span>
+              <RefreshCw className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+            </button>
+
+            {/* Notification Bell with Badge */}
           <div className="relative shrink-0" ref={notiRef}>
             <button
               onClick={() => setShowNotiDropdown(!showNotiDropdown)}
@@ -241,6 +247,16 @@ export default function Header({
         </div>
 
       </div>
-    </header>
+
+      {/* Row 2: External App Hub (OneDrive & Canva) - Strictly 1 column width */}
+      {viewMode === 'mobile' && (
+        <div className="grid grid-cols-2 gap-2 pt-1.5 mt-1.5 border-t border-amber-100/60 dark:border-stone-800/60 w-full animate-fade-in">
+          <OneDriveButton variant="bar" />
+          <CanvaButton variant="bar" />
+        </div>
+      )}
+
+    </div>
+  </header>
   );
 }

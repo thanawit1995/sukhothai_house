@@ -61,6 +61,27 @@ export default function OneDriveButton({
     }
   };
 
+  // Sub-bar Button (Full column 50% split for mobile/single-column header)
+  if (variant === 'bar') {
+    return (
+      <a
+        href={appUrl}
+        onClick={handleClick}
+        target={isDesktop ? '_blank' : undefined}
+        rel="noopener noreferrer"
+        className={`h-8 px-2.5 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50/70 dark:from-sky-950/60 dark:to-blue-950/40 hover:from-sky-100 hover:to-blue-100 border border-sky-300 dark:border-sky-800 text-sky-900 dark:text-sky-300 flex items-center justify-between active:scale-98 transition-all shadow-2xs group min-w-0 ${className}`}
+        title="เปิดโฟลเดอร์ Home ในแอป OneDrive (สลับเข้าแอป)"
+        aria-label="เปิดโฟลเดอร์ Home ในแอป OneDrive"
+      >
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <OneDriveIcon className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0 group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-black truncate text-sky-900 dark:text-sky-200">OneDrive [Home]</span>
+        </div>
+        <ExternalLink className="w-3 h-3 text-sky-500/70 dark:text-sky-400/70 shrink-0 ml-1" />
+      </a>
+    );
+  }
+
   // Header Toolbar Button
   if (variant === 'header') {
     return (

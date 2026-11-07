@@ -62,6 +62,27 @@ export default function CanvaButton({
     }
   };
 
+  // Sub-bar Button (Full column 50% split for mobile/single-column header)
+  if (variant === 'bar') {
+    return (
+      <a
+        href={appUrl}
+        onClick={handleClick}
+        target={isDesktop ? '_blank' : undefined}
+        rel="noopener noreferrer"
+        className={`h-8 px-2.5 rounded-xl bg-gradient-to-r from-teal-50 to-cyan-50/70 dark:from-teal-950/60 dark:to-cyan-950/40 hover:from-teal-100 hover:to-cyan-100 border border-teal-300 dark:border-teal-800 text-teal-900 dark:text-teal-300 flex items-center justify-between active:scale-98 transition-all shadow-2xs group min-w-0 ${className}`}
+        title="เปิดมู้ดบอร์ดในแอป Canva (สลับเข้าแอป)"
+        aria-label="เปิดมู้ดบอร์ดในแอป Canva"
+      >
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <CanvaIcon className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0 group-hover:scale-110 transition-transform" />
+          <span className="text-[11px] font-black truncate text-teal-900 dark:text-teal-200">Canva Design</span>
+        </div>
+        <ExternalLink className="w-3 h-3 text-teal-500/70 dark:text-teal-400/70 shrink-0 ml-1" />
+      </a>
+    );
+  }
+
   // Header Toolbar Button
   if (variant === 'header') {
     return (
