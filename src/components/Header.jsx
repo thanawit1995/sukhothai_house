@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, RefreshCw, Check, ChevronRight, Monitor, Smartphone, Sun, Moon, Cloud, CloudOff, AlertCircle } from 'lucide-react';
 import OneDriveButton from './OneDriveButton';
+import CanvaButton from './CanvaButton';
 
 export default function Header({ 
   currentUser, 
@@ -112,6 +113,9 @@ export default function Header({
 
           {/* OneDrive Home Button (Direct App Switch) */}
           <OneDriveButton variant="header" />
+
+          {/* Canva Design Button (Direct App Switch) */}
+          <CanvaButton variant="header" />
 
           {/* Desktop <-> Mobile View Toggle Button (Only on Tablet/Desktop) */}
           <button

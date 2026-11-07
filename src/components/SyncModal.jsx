@@ -21,6 +21,7 @@ import {
 import { getSupabaseConfig, saveSupabaseConfig, clearSupabaseConfig, sanitizeSupabaseUrl } from '../lib/supabase';
 import { StorageService } from '../lib/storage';
 import OneDriveButton from './OneDriveButton';
+import CanvaButton from './CanvaButton';
 
 export default function SyncModal({ isOpen, onClose, onSyncComplete }) {
   const [config, setConfig] = useState(getSupabaseConfig());
@@ -316,8 +317,11 @@ END $$;`;
           </div>
         )}
 
-        {/* OneDrive Home Shared Folder */}
-        <OneDriveButton variant="card" />
+        {/* Project Cloud & Design Hub */}
+        <div className="space-y-2">
+          <OneDriveButton variant="card" />
+          <CanvaButton variant="card" />
+        </div>
 
         {/* Credentials Form */}
         <form onSubmit={handleSave} className="space-y-3 pt-1">
