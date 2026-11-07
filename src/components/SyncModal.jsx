@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseConfig, saveSupabaseConfig, clearSupabaseConfig, sanitizeSupabaseUrl } from '../lib/supabase';
 import { StorageService } from '../lib/storage';
+import OneDriveButton from './OneDriveButton';
 
 export default function SyncModal({ isOpen, onClose, onSyncComplete }) {
   const [config, setConfig] = useState(getSupabaseConfig());
@@ -314,6 +315,9 @@ END $$;`;
             </button>
           </div>
         )}
+
+        {/* OneDrive Home Shared Folder */}
+        <OneDriveButton variant="card" />
 
         {/* Credentials Form */}
         <form onSubmit={handleSave} className="space-y-3 pt-1">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, RefreshCw, Check, ChevronRight, Monitor, Smartphone, Sun, Moon, Cloud, CloudOff, AlertCircle } from 'lucide-react';
+import OneDriveButton from './OneDriveButton';
 
 export default function Header({ 
   currentUser, 
@@ -108,6 +109,9 @@ export default function Header({
               {isSyncing ? 'ซิงค์...' : syncStatus.isConnected ? 'คลาวด์' : 'ในเครื่อง'}
             </span>
           </button>
+
+          {/* OneDrive Home Button (Direct App Switch) */}
+          <OneDriveButton variant="header" />
 
           {/* Desktop <-> Mobile View Toggle Button (Only on Tablet/Desktop) */}
           <button
