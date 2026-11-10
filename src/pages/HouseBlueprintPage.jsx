@@ -4,8 +4,6 @@ import { Home, Trees, LayoutGrid, Car, ChefHat, BedDouble, Bed, Armchair, Utensi
 import BottomSheet from '../components/BottomSheet';
 import ConfirmModal from '../components/ConfirmModal';
 import ImageViewerModal from '../components/ImageViewerModal';
-import OneDriveButton from '../components/OneDriveButton';
-import CanvaButton from '../components/CanvaButton';
 import { StorageService } from '../lib/storage';
 
 // Default Contemporary House Hotspots
@@ -388,12 +386,6 @@ export default function HouseBlueprintPage({ notes, onAddNote, currentUser }) {
         >
           🛋️ แปลนในบ้าน
         </button>
-      </div>
-
-      {/* Project Vaults: OneDrive & Canva Design Hub */}
-      <div className="space-y-2.5">
-        <OneDriveButton variant="card" />
-        <CanvaButton variant="card" />
       </div>
 
       {/* ================= SUB-TAB 1: CONTEMPORARY HOUSE 3D (Req 4, 6) ================= */}
